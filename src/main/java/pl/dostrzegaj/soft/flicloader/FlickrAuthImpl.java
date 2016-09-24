@@ -30,6 +30,7 @@ public class FlickrAuthImpl implements AuthWrapper {
         Token requestToken = new Token(token, tokenSecret);
         try {
             Auth auth = authInterface.checkToken(requestToken);
+            System.out.println("Authentication success");
             return new FlickrUserImpl(auth);
         } catch (FlickrException e) {
             throw Throwables.propagate(e);
@@ -49,7 +50,6 @@ public class FlickrAuthImpl implements AuthWrapper {
         try (Scanner scanner = new Scanner(System.in)) {
             String tokenKey = scanner.nextLine();
             Token accessToken = authInterface.getAccessToken(token, new Verifier(tokenKey));
-            System.out.println("Authentication success");
             return accessToken;
         }
     }

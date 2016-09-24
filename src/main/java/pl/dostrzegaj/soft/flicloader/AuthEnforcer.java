@@ -47,8 +47,9 @@ public class AuthEnforcer {
         String token = properties.getProperty(TOKEN);
         String tokenSecret = properties.getProperty(TOKEN_SECRET);
         if (token == null || token.isEmpty() || tokenSecret == null || tokenSecret.isEmpty()) {
+            System.out.println("Token and token secret are missing. Yuo need to authorise new.");
             Token requestToken = auth.authoriseNewToken();
-            System.out.println("Paste that into properties file");
+            System.out.println("Paste that into properties file to persist it for next runs:");
             System.out.println(TOKEN + "=" + requestToken.getToken());
             System.out.println(TOKEN_SECRET + "=" + requestToken.getSecret());
             return auth.authorise(requestToken.getToken(), requestToken.getSecret());
