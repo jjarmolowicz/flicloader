@@ -25,7 +25,8 @@ public class Main {
             }
         });
         UserWrapper userWrapper = authEnforcer.enforceAuthentication();
-        ((FlickrUserImpl)userWrapper).showIt();
+
+        userWrapper.getPhotosetsAsList().getPhotosets().stream().forEach(i-> System.out.println( i.getTitle()));
     }
 
     static Properties verifyInputAndProduceProperties(String[] args) throws IOException {
