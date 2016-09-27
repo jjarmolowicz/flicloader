@@ -6,12 +6,9 @@ import java.util.stream.Collectors;
 
 import org.scribe.model.Token;
 
-import pl.dostrzegaj.soft.flicloader.api.AuthWrapper;
-import pl.dostrzegaj.soft.flicloader.api.UserWrapper;
-
 import com.google.common.collect.Lists;
 
-public class AuthEnforcer {
+class AuthEnforcer {
 
     static final java.lang.String APIKEY = "apiKey";
     static final java.lang.String SECRET = "secret";
@@ -20,7 +17,7 @@ public class AuthEnforcer {
     private Properties properties;
     private AuthWrapperFactory authFactory;
 
-    abstract static class AuthWrapperFactory {
+    public abstract static class AuthWrapperFactory {
 
         public abstract AuthWrapper factory(String apiKey, String secret);
     }

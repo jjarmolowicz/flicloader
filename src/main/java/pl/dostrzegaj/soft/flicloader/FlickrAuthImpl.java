@@ -5,9 +5,6 @@ import java.util.Scanner;
 import org.scribe.model.Token;
 import org.scribe.model.Verifier;
 
-import pl.dostrzegaj.soft.flicloader.api.AuthWrapper;
-import pl.dostrzegaj.soft.flicloader.api.UserWrapper;
-
 import com.flickr4java.flickr.Flickr;
 import com.flickr4java.flickr.FlickrException;
 import com.flickr4java.flickr.REST;
@@ -16,7 +13,7 @@ import com.flickr4java.flickr.auth.AuthInterface;
 import com.flickr4java.flickr.auth.Permission;
 import com.google.common.base.Throwables;
 
-public class FlickrAuthImpl implements AuthWrapper {
+class FlickrAuthImpl implements AuthWrapper {
 
     private Flickr f;
 

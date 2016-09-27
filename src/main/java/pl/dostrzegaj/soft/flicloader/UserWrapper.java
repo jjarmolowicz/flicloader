@@ -1,7 +1,7 @@
-package pl.dostrzegaj.soft.flicloader.api;
+package pl.dostrzegaj.soft.flicloader;
 
 import com.flickr4java.flickr.photosets.Photosets;
 
-public interface UserWrapper {
+interface UserWrapper {
     Photosets getPhotosetsAsList();
 }

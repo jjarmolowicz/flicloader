@@ -1,9 +1,8 @@
-package pl.dostrzegaj.soft.flicloader.api;
+package pl.dostrzegaj.soft.flicloader;
 
-import com.flickr4java.flickr.FlickrException;
 import org.scribe.model.Token;
 
-public interface AuthWrapper {
+interface AuthWrapper {
     UserWrapper authorise( String token, String tokenSecret);
     Token authoriseNewToken();
 }

@@ -5,11 +5,10 @@ import com.flickr4java.flickr.FlickrException;
 import com.flickr4java.flickr.RequestContext;
 import com.flickr4java.flickr.photosets.Photosets;
 import com.google.common.base.Throwables;
-import pl.dostrzegaj.soft.flicloader.api.UserWrapper;
 
 import com.flickr4java.flickr.auth.Auth;
 
-public class FlickrUserImpl implements UserWrapper {
+class FlickrUserImpl implements UserWrapper {
 
     private Flickr f;
     private Auth auth;

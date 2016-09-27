@@ -9,9 +9,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.scribe.model.Token;
 
-import pl.dostrzegaj.soft.flicloader.api.AuthWrapper;
-import pl.dostrzegaj.soft.flicloader.api.UserWrapper;
-
 public class AuthEnforcerTest {
 
     @Test(expected = IllegalArgumentException.class)

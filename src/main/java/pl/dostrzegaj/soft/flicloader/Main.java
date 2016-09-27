@@ -1,15 +1,11 @@
 package pl.dostrzegaj.soft.flicloader;
 
 import java.io.*;
-import java.util.Optional;
 import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
-
-import pl.dostrzegaj.soft.flicloader.api.AuthWrapper;
-import pl.dostrzegaj.soft.flicloader.api.UserWrapper;
 
 public class Main {
 
