@@ -20,7 +20,6 @@ class FlickrUserImpl implements UserWrapper {
     }
 
 
-    @Override
     public Photosets getPhotosetsAsList() {
         try {
             return f.getPhotosetsInterface().getList(auth.getUser().getId());

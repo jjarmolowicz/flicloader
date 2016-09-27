@@ -1,6 +1,7 @@
 package pl.dostrzegaj.soft.flicloader;
 
 import java.io.*;
+import java.util.List;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         Properties properties = verifyInputAndProduceProperties(args);
+        List<File> dirsToBeSynced = new DirsToBeSyncedProvider(properties).extractAndVerifyCorrectness();
         AuthEnforcer authEnforcer = new AuthEnforcer(properties, new AuthEnforcer.AuthWrapperFactory() {
 
             @Override
@@ -22,7 +24,7 @@ public class Main {
         });
         UserWrapper userWrapper = authEnforcer.enforceAuthentication();
 
-        userWrapper.getPhotosetsAsList().getPhotosets().stream().forEach(i-> System.out.println( i.getTitle()));
+
     }
 
     static Properties verifyInputAndProduceProperties(String[] args) throws IOException {

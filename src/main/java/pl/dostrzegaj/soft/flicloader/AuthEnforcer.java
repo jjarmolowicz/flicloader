@@ -10,10 +10,10 @@ import com.google.common.collect.Lists;
 
 class AuthEnforcer {
 
-    static final java.lang.String APIKEY = "apiKey";
-    static final java.lang.String SECRET = "secret";
-    static final java.lang.String TOKEN = "token";
-    static final java.lang.String TOKEN_SECRET = "tokenSecret";
+    static final String APIKEY = "apiKey";
+    static final String SECRET = "secret";
+    static final String TOKEN = "token";
+    static final String TOKEN_SECRET = "tokenSecret";
     private Properties properties;
     private AuthWrapperFactory authFactory;
 
