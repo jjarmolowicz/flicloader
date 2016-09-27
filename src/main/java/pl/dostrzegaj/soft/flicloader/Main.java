@@ -24,7 +24,7 @@ public class Main {
         });
         UserWrapper userWrapper = authEnforcer.enforceAuthentication();
 
-
+        dirsToBeSynced.stream().forEach(dir -> new PhotoFoldersIterator(dir).forEach(i -> System.out.println("i = " + i)));
     }
 
     static Properties verifyInputAndProduceProperties(String[] args) throws IOException {
