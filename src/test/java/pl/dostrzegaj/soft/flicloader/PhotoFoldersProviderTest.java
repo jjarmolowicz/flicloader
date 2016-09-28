@@ -24,7 +24,6 @@ public class PhotoFoldersProviderTest {
         Iterator<PhotoFolderInfo> iterator = photoFolderInfos.iterator();
         Assert.assertTrue(iterator.hasNext());
         PhotoFolderInfo next = iterator.next();
-        Assert.assertFalse(next.isHasSubFolders());
         Assert.assertEquals(1, next.getPhotos().size());
         Assert.assertFalse(iterator.hasNext());
     }
@@ -39,7 +38,6 @@ public class PhotoFoldersProviderTest {
         Iterator<PhotoFolderInfo> iterator = photoFolderInfos.iterator();
         Assert.assertTrue(iterator.hasNext());
         PhotoFolderInfo next = iterator.next();
-        Assert.assertFalse(next.isHasSubFolders());
         Assert.assertEquals(1, next.getPhotos().size());
         Assert.assertEquals(subdir, next.getFolder());
         Assert.assertFalse(iterator.hasNext());
@@ -57,13 +55,11 @@ public class PhotoFoldersProviderTest {
         Iterator<PhotoFolderInfo> iterator = photoFolderInfos.iterator();
         Assert.assertTrue(iterator.hasNext());
         PhotoFolderInfo next = iterator.next();
-        Assert.assertFalse(next.isHasSubFolders());
-        Assert.assertEquals(2, next.getPhotos().size());
-        Assert.assertEquals(subdir, next.getFolder());
+        Assert.assertEquals(1, next.getPhotos().size());
         Assert.assertTrue(iterator.hasNext());
         next = iterator.next();
-        Assert.assertTrue(next.isHasSubFolders());
-        Assert.assertEquals(1, next.getPhotos().size());
+        Assert.assertEquals(2, next.getPhotos().size());
+        Assert.assertEquals(subdir, next.getFolder());
         Assert.assertFalse(iterator.hasNext());
     }
 
