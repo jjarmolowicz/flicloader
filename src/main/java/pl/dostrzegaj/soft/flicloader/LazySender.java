@@ -25,10 +25,10 @@ class LazySender {
         if (optionalFolder.isPresent()) {
             folder = optionalFolder.get();
         }else {
-            folder = userAccount.createPhotoFolder(createFolderName(i.getFolder()));
+            folder = userAccount.createPhotoFolder(createFolderName(i.getFolder().getDir()));
             localCache.storePhotoFolder(folder);
         }
-        List<File> filesToUpload = localCache.getNonExistingPhotos(i.getPhotos(),folder);
+        List<PhotoFile> filesToUpload = localCache.getNonExistingPhotos(i.getPhotos(),folder);
         localCache.storeUploadedFiles(userAccount.uploadPhotos(filesToUpload, folder), folder);
     }
 

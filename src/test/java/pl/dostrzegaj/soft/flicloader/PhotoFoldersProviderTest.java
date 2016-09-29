@@ -44,7 +44,7 @@ public class PhotoFoldersProviderTest {
         Assert.assertTrue(iterator.hasNext());
         PhotoFolderInfo next = iterator.next();
         Assert.assertEquals(1, next.getPhotos().size());
-        Assert.assertEquals(subdir, next.getFolder());
+        Assert.assertEquals(subdir, next.getFolder().getDir());
         Assert.assertFalse(iterator.hasNext());
     }
 
@@ -64,7 +64,7 @@ public class PhotoFoldersProviderTest {
         Assert.assertTrue(iterator.hasNext());
         next = iterator.next();
         Assert.assertEquals(2, next.getPhotos().size());
-        Assert.assertEquals(subdir, next.getFolder());
+        Assert.assertEquals(subdir, next.getFolder().getDir());
         Assert.assertFalse(iterator.hasNext());
     }
 

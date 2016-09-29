@@ -4,19 +4,19 @@ import java.io.File;
 import java.util.List;
 
 class PhotoFolderInfo {
-    private File folder;
-    private List<File> photos;
+    private PhotoFolderDir folder;
+    private List<PhotoFile> photos;
 
-    public PhotoFolderInfo(File folder,List<File> photos) {
+    public PhotoFolderInfo(PhotoFolderDir folder,List<PhotoFile> photos) {
         this.folder = folder;
         this.photos = photos;
     }
 
-    public File getFolder() {
+    public PhotoFolderDir getFolder() {
         return folder;
     }
 
-    public List<File> getPhotos() {
+    public List<PhotoFile> getPhotos() {
         return photos;
     }
 }

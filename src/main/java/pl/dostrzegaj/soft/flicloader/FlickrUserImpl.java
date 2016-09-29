@@ -37,7 +37,7 @@ class FlickrUserImpl implements UserAccount {
     }
 
     @Override
-    public List<UploadedPhoto> uploadPhotos(List<File> photos, PhotoFolder folder) {
+    public List<UploadedPhoto> uploadPhotos(List<PhotoFile> photos, PhotoFolder folder) {
         return null;
     }
 }

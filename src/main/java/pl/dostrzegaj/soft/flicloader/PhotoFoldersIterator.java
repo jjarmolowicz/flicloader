@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
@@ -18,16 +19,17 @@ class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
     @Override
     public Iterator<PhotoFolderInfo> iterator() {
         return new Iterator<PhotoFolderInfo>() {
+
             private final Queue<File> dirs;
             private PhotoFolderInfo nextElement;
             {
                 dirs = Lists.newLinkedList();
                 dirs.add(root);
             }
-            
+
             @Override
             public boolean hasNext() {
-                while(!dirs.isEmpty()) {
+                while (!dirs.isEmpty()) {
                     List<File> files = Lists.newArrayList();
                     File dir = dirs.poll();
                     for (File file : dir.listFiles()) {
@@ -38,7 +40,9 @@ class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
                         }
                     }
                     if (!files.isEmpty()) {
-                        nextElement = new PhotoFolderInfo(dir, files);
+                        nextElement =
+                            new PhotoFolderInfo(new PhotoFolderDir(dir), files.stream().map(i -> new PhotoFile(i))
+                                .collect(Collectors.toList()));
                         return true;
                     }
                 }

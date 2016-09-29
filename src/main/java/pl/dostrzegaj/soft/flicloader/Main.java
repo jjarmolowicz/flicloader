@@ -11,6 +11,7 @@ import org.slf4j.helpers.MessageFormatter;
 public class Main {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
+    public static final String PROJECT_NAME = "flicloader";
 
     public static void main(String[] args) throws IOException {
         Properties properties = verifyInputAndProduceProperties(args);
