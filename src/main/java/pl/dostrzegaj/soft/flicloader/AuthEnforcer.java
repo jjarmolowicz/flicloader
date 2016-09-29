@@ -27,7 +27,7 @@ class AuthEnforcer {
         this.authFactory = factory;
     }
 
-    public UserWrapper enforceAuthentication() {
+    public UserAccount enforceAuthentication() {
         String apiKey = properties.getProperty(APIKEY);
         List<String> errors = Lists.newArrayList();
         if (apiKey == null || apiKey.isEmpty()) {

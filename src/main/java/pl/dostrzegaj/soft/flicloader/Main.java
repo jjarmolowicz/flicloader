@@ -22,9 +22,15 @@ public class Main {
                 return new FlickrAuthImpl(apiKey, secret);
             }
         });
-        UserWrapper userWrapper = authEnforcer.enforceAuthentication();
+        UserAccount userAccount = authEnforcer.enforceAuthentication();
 
-        dirsToBeSynced.stream().forEach(dir -> new PhotoFoldersIterator(dir).forEach(i -> System.out.println("i = " + i)));
+        for (File dir : dirsToBeSynced) {
+            LazySender sender = new LazySender(dir,new LocalCache(dir), userAccount);
+            for (PhotoFolderInfo i : new PhotoFoldersIterator(dir)) {
+                sender.sendIfNeeded(i);
+            }
+        }
+
     }
 
     static Properties verifyInputAndProduceProperties(String[] args) throws IOException {

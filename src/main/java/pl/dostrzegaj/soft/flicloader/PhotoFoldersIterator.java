@@ -38,7 +38,7 @@ class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
                         }
                     }
                     if (!files.isEmpty()) {
-                        nextElement = new PhotoFolderInfo(dir, root, files);
+                        nextElement = new PhotoFolderInfo(dir, files);
                         return true;
                     }
                 }

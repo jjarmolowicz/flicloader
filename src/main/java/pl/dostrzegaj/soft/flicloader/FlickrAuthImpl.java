@@ -22,7 +22,7 @@ class FlickrAuthImpl implements AuthWrapper {
     }
 
     @Override
-    public UserWrapper authorise(String token, String tokenSecret) {
+    public UserAccount authorise(String token, String tokenSecret) {
         AuthInterface authInterface = f.getAuthInterface();
         Token requestToken = new Token(token, tokenSecret);
         try {

@@ -5,20 +5,25 @@ import java.io.IOException;
 import java.util.Iterator;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class PhotoFoldersProviderTest {
 
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
     @Test
     public void givenEmptyDirThenEmptyOutput() throws IOException {
-        File tempDir = createTempDir();
+        File tempDir = folder.getRoot();
         PhotoFoldersIterator photoFolderInfos = new PhotoFoldersIterator(tempDir);
         Assert.assertFalse(photoFolderInfos.iterator().hasNext());
     }
 
     @Test
     public void givenDirWithFilesThenInfoProduced() throws IOException {
-        File tempDir = createTempDir();
+        File tempDir = folder.getRoot();
         new File(tempDir, "photo1").createNewFile();
         PhotoFoldersIterator photoFolderInfos = new PhotoFoldersIterator(tempDir);
         Iterator<PhotoFolderInfo> iterator = photoFolderInfos.iterator();
@@ -30,7 +35,7 @@ public class PhotoFoldersProviderTest {
 
     @Test
     public void givenDirWithSubdirThenInfoProducedOnlyForSubdir() throws IOException {
-        File tempDir = createTempDir();
+        File tempDir = folder.getRoot();
         File subdir = new File(tempDir, "subdir");
         subdir.mkdir();
         new File(subdir, "photo1").createNewFile();
@@ -45,7 +50,7 @@ public class PhotoFoldersProviderTest {
 
     @Test
     public void givenDirWithSubdirAndPhotoThenInfoProducedForBoth() throws IOException {
-        File tempDir = createTempDir();
+        File tempDir = folder.getRoot();
         new File(tempDir, "photo1").createNewFile();
         File subdir = new File(tempDir, "subdir");
         subdir.mkdir();
@@ -63,10 +68,4 @@ public class PhotoFoldersProviderTest {
         Assert.assertFalse(iterator.hasNext());
     }
 
-    File createTempDir() throws IOException {
-        File temp = File.createTempFile("temp", Long.toString(System.nanoTime()));
-        temp.delete();
-        temp.mkdir();
-        return temp;
-    }
 }

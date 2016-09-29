@@ -37,11 +37,11 @@ public class AuthEnforcerTest {
         properties.put(AuthEnforcer.APIKEY, "apikeyvalue");
         properties.put(AuthEnforcer.SECRET, "mysecret");
         AuthWrapper authMock = Mockito.mock(AuthWrapper.class);
-        UserWrapper userMock = Mockito.mock(UserWrapper.class);
+        UserAccount userMock = Mockito.mock(UserAccount.class);
         Token t = new Token("a", "b");
         Mockito.when(authMock.authoriseNewToken()).thenReturn(t);
         Mockito.when(authMock.authorise(t.getToken(), t.getSecret())).thenReturn(userMock);
-        UserWrapper user = new AuthEnforcer(properties, getFactory(authMock)).enforceAuthentication();
+        UserAccount user = new AuthEnforcer(properties, getFactory(authMock)).enforceAuthentication();
         assertEquals(user, userMock);
     }
 
@@ -57,9 +57,9 @@ public class AuthEnforcerTest {
         properties.put(AuthEnforcer.TOKEN, mysupertoken);
         properties.put(AuthEnforcer.TOKEN_SECRET, mysupertokenSecret);
         AuthWrapper authMock = Mockito.mock(AuthWrapper.class);
-        UserWrapper expectedUser = Mockito.mock(UserWrapper.class);
+        UserAccount expectedUser = Mockito.mock(UserAccount.class);
         Mockito.when(authMock.authorise(mysupertoken, mysupertokenSecret)).thenReturn(expectedUser);
-        UserWrapper user = new AuthEnforcer(properties, getFactory(authMock)).enforceAuthentication();
+        UserAccount user = new AuthEnforcer(properties, getFactory(authMock)).enforceAuthentication();
 
         Mockito.verify(authMock).authorise(mysupertoken, mysupertokenSecret);
         Assert.assertEquals(expectedUser, user);

@@ -8,7 +8,10 @@ import com.google.common.base.Throwables;
 
 import com.flickr4java.flickr.auth.Auth;
 
-class FlickrUserImpl implements UserWrapper {
+import java.io.File;
+import java.util.List;
+
+class FlickrUserImpl implements UserAccount {
 
     private Flickr f;
     private Auth auth;
@@ -26,5 +29,15 @@ class FlickrUserImpl implements UserWrapper {
         } catch (FlickrException e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    @Override
+    public PhotoFolder createPhotoFolder(String name) {
+        return null;
+    }
+
+    @Override
+    public List<UploadedPhoto> uploadPhotos(List<File> photos, PhotoFolder folder) {
+        return null;
     }
 }

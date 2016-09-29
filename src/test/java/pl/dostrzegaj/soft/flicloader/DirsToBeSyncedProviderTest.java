@@ -6,9 +6,14 @@ import java.util.List;
 import java.util.Properties;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class DirsToBeSyncedProviderTest {
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
 
     @Test(expected = IllegalArgumentException.class)
     public void givenNoPropertyThenException() {
@@ -41,7 +46,7 @@ public class DirsToBeSyncedProviderTest {
     public void givenCorrectDirectoryWhenVerifiedThenReturnedAsIs() throws IOException {
         Properties properties = new Properties();
 
-        File temp = createTempDir();
+        File temp = folder.getRoot();
 
         properties.put(DirsToBeSyncedProvider.DIRS_KEY, temp.toString());
         List<File> files = new DirsToBeSyncedProvider(properties).extractAndVerifyCorrectness();
@@ -53,7 +58,7 @@ public class DirsToBeSyncedProviderTest {
     public void givenSameDirectoryTwoTimesThenException() throws IOException {
         Properties properties = new Properties();
 
-        File temp = createTempDir();
+        File temp = folder.getRoot();
 
         properties.put(DirsToBeSyncedProvider.DIRS_KEY, temp.toString() + "," + temp.toString());
         new DirsToBeSyncedProvider(properties).extractAndVerifyCorrectness();
@@ -63,17 +68,11 @@ public class DirsToBeSyncedProviderTest {
     public void givenParentAndChildDirectoryThenException() throws IOException {
         Properties properties = new Properties();
 
-        File temp = createTempDir();
+        File temp = folder.getRoot();
 
         properties.put(DirsToBeSyncedProvider.DIRS_KEY, temp.toString() + "," + temp.getParent().toString());
         List<File> files = new DirsToBeSyncedProvider(properties).extractAndVerifyCorrectness();
     }
 
-    File createTempDir() throws IOException {
-        File temp = File.createTempFile("temp", Long.toString(System.nanoTime()));
-        temp.delete();
-        temp.mkdir();
-        return temp;
-    }
 
 }
