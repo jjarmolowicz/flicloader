@@ -26,6 +26,7 @@ public class Main {
         UserAccount userAccount = authEnforcer.enforceAuthentication();
 
         UploadConfig uploadConfig = new UploadConfig(properties);
+        LOGGER.debug("upload config: {}", uploadConfig);
 
         for (File dir : dirsToBeSynced) {
             try (LocalCache localCache = new LocalCache(dir)) {

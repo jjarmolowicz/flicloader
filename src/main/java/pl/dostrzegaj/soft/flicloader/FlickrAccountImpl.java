@@ -2,11 +2,13 @@ package pl.dostrzegaj.soft.flicloader;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.flickr4java.flickr.Flickr;
 import com.flickr4java.flickr.FlickrException;
 import com.flickr4java.flickr.RequestContext;
 import com.flickr4java.flickr.auth.Auth;
-import com.flickr4java.flickr.photosets.Photosets;
 import com.flickr4java.flickr.photosets.PhotosetsInterface;
 import com.flickr4java.flickr.uploader.UploadMetaData;
 import com.flickr4java.flickr.uploader.Uploader;
@@ -15,6 +17,7 @@ import com.google.common.collect.Lists;
 
 class FlickrAccountImpl implements UserAccount {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FlickrAccountImpl.class);
     private Flickr f;
     private Auth auth;
 
@@ -58,6 +61,10 @@ class FlickrAccountImpl implements UserAccount {
                 Throwables.propagate(e);
             }
 
+        }
+        LOGGER.debug("New files uploaded: {}", photos);
+        if (!photos.isEmpty()) {
+            LOGGER.info("Uploaded {} new photos", photos.size());
         }
         return result;
     }

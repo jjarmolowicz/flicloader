@@ -25,4 +25,14 @@ class UploadConfig {
     public boolean getIsFamily() {
         return isFamily;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("UploadConfig{");
+        sb.append("isPublic=").append(isPublic);
+        sb.append(", isFriend=").append(isFriend);
+        sb.append(", isFamily=").append(isFamily);
+        sb.append('}');
+        return sb.toString();
+    }
 }
