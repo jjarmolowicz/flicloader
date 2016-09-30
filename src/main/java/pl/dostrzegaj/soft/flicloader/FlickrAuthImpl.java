@@ -39,7 +39,7 @@ class FlickrAuthImpl implements AuthWrapper {
     public Token authoriseNewToken() {
         AuthInterface authInterface = f.getAuthInterface();
         Token token = authInterface.getRequestToken();
-        String authorizationUrl = authInterface.getAuthorizationUrl(token, Permission.READ);
+        String authorizationUrl = authInterface.getAuthorizationUrl(token, Permission.WRITE);
         System.out.println("Follow this URL to authorise yourself on Flickr");
         System.out.println(authorizationUrl);
         System.out.println("Paste in the token it gives you:");

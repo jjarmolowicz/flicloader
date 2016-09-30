@@ -24,7 +24,7 @@ public class PhotoFoldersProviderTest {
     @Test
     public void givenDirWithFilesThenInfoProduced() throws IOException {
         File tempDir = folder.getRoot();
-        new File(tempDir, "photo1").createNewFile();
+        new File(tempDir, "photo1.jpg").createNewFile();
         PhotoFoldersIterator photoFolderInfos = new PhotoFoldersIterator(tempDir);
         Iterator<PhotoFolderInfo> iterator = photoFolderInfos.iterator();
         Assert.assertTrue(iterator.hasNext());
@@ -38,7 +38,7 @@ public class PhotoFoldersProviderTest {
         File tempDir = folder.getRoot();
         File subdir = new File(tempDir, "subdir");
         subdir.mkdir();
-        new File(subdir, "photo1").createNewFile();
+        new File(subdir, "photo1.jpg").createNewFile();
         PhotoFoldersIterator photoFolderInfos = new PhotoFoldersIterator(tempDir);
         Iterator<PhotoFolderInfo> iterator = photoFolderInfos.iterator();
         Assert.assertTrue(iterator.hasNext());
@@ -51,11 +51,11 @@ public class PhotoFoldersProviderTest {
     @Test
     public void givenDirWithSubdirAndPhotoThenInfoProducedForBoth() throws IOException {
         File tempDir = folder.getRoot();
-        new File(tempDir, "photo1").createNewFile();
+        new File(tempDir, "photo1.jpg").createNewFile();
         File subdir = new File(tempDir, "subdir");
         subdir.mkdir();
-        new File(subdir, "photo1").createNewFile();
-        new File(subdir, "photo2").createNewFile();
+        new File(subdir, "photo1.jpg").createNewFile();
+        new File(subdir, "photo2.jpg").createNewFile();
         PhotoFoldersIterator photoFolderInfos = new PhotoFoldersIterator(tempDir);
         Iterator<PhotoFolderInfo> iterator = photoFolderInfos.iterator();
         Assert.assertTrue(iterator.hasNext());

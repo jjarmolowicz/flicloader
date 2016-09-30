@@ -6,5 +6,7 @@ import java.util.List;
 interface UserAccount {
     PhotoFolder createPhotoFolder(String name);
 
-    List<UploadedPhoto> uploadPhotos(List<PhotoFile> photos, PhotoFolder folder);
+    List<UploadedPhoto> uploadPhotos(List<PhotoFile> photos);
+
+    void movePhotosToFolder(List<UploadedPhoto> uploadedPhotos, PhotoFolder folder);
 }

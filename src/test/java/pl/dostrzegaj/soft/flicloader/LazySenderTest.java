@@ -73,7 +73,8 @@ public class LazySenderTest {
         sender.sendIfNeeded(photoInfo);
 
         // then
-        Mockito.verify(userAccount).uploadPhotos(photos, photoFolder);
+        Mockito.verify(userAccount).uploadPhotos(photos);
+        Mockito.verify(userAccount).movePhotosToFolder(Mockito.any(), Mockito.eq(photoFolder));
     }
 
     @Test
@@ -116,6 +117,7 @@ public class LazySenderTest {
         sender.sendIfNeeded(photoInfo);
 
         // then
-        Mockito.verify(userAccount).uploadPhotos(Mockito.eq(emptyList), Mockito.eq(photoFolder));
+        Mockito.verify(userAccount).uploadPhotos(Mockito.eq(emptyList));
+        Mockito.verify(userAccount).movePhotosToFolder(Mockito.any(), Mockito.eq(photoFolder));
     }
 }

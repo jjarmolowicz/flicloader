@@ -1,6 +1,7 @@
 package pl.dostrzegaj.soft.flicloader;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
@@ -10,6 +11,7 @@ import com.google.common.collect.Lists;
 
 class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
 
+    private static FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".jpg");
     private File root;
 
     public PhotoFoldersIterator(File root) {
@@ -32,7 +34,7 @@ class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
                 while (!dirs.isEmpty()) {
                     List<File> files = Lists.newArrayList();
                     File dir = dirs.poll();
-                    for (File file : dir.listFiles()) {
+                    for (File file : dir.listFiles(filter)) {
                         if (file.isDirectory()) {
                             dirs.add(file);
                         } else {

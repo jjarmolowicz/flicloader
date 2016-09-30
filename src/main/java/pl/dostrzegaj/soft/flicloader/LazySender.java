@@ -22,14 +22,18 @@ class LazySender {
     public void sendIfNeeded(PhotoFolderInfo i) {
         Optional<PhotoFolder> optionalFolder = localCache.getPhotoFolder(i.getFolder());
         PhotoFolder folder;
+        List<UploadedPhoto> uploadedPhotos;
         if (optionalFolder.isPresent()) {
             folder = optionalFolder.get();
+            uploadedPhotos = userAccount.uploadPhotos(localCache.getNonExistingPhotos(i.getPhotos(), folder));
+            userAccount.movePhotosToFolder(uploadedPhotos,folder);
         }else {
+            uploadedPhotos = userAccount.uploadPhotos(i.getPhotos());
             folder = userAccount.createPhotoFolder(createFolderName(i.getFolder().getDir()));
+            userAccount.movePhotosToFolder(uploadedPhotos,folder);
             localCache.storePhotoFolder(folder);
         }
-        List<PhotoFile> filesToUpload = localCache.getNonExistingPhotos(i.getPhotos(),folder);
-        localCache.storeUploadedFiles(userAccount.uploadPhotos(filesToUpload, folder), folder);
+        localCache.storeUploadedFiles(uploadedPhotos, folder);
     }
 
     private String createFolderName(File folder) {
