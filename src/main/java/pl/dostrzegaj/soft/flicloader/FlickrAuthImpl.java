@@ -28,7 +28,7 @@ class FlickrAuthImpl implements AuthWrapper {
         try {
             Auth auth = authInterface.checkToken(requestToken);
             System.out.println("Authentication success");
-            return new FlickrUserImpl(f,auth);
+            return new FlickrAccountImpl(f,auth);
         } catch (FlickrException e) {
             throw Throwables.propagate(e);
         }

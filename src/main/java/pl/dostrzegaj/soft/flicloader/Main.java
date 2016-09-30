@@ -25,10 +25,12 @@ public class Main {
         });
         UserAccount userAccount = authEnforcer.enforceAuthentication();
 
+        UploadConfig uploadConfig = new UploadConfig(properties);
+
         for (File dir : dirsToBeSynced) {
             try (LocalCache localCache = new LocalCache(dir)) {
                 LazySender sender = new LazySender(dir, localCache, userAccount);
-                for (PhotoFolderInfo i : new PhotoFoldersIterator(dir)) {
+                for (PhotoFolderInfo i : new PhotoFoldersIterator(dir, uploadConfig)) {
                     sender.sendIfNeeded(i);
                 }
             }

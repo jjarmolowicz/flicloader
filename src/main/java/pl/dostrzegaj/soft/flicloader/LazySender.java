@@ -29,10 +29,10 @@ class LazySender {
         List<UploadedPhoto> uploadedPhotos;
         if (optionalFolder.isPresent()) {
             folder = optionalFolder.get();
-            uploadedPhotos = userAccount.uploadPhotos(localCache.getNonExistingPhotos(i.getPhotos(), folder));
+            uploadedPhotos = userAccount.uploadPhotos(localCache.getNonExistingPhotos(i.getPhotos(), folder),i.getUploadConfig());
             userAccount.movePhotosToFolder(uploadedPhotos, folder);
         } else {
-            uploadedPhotos = userAccount.uploadPhotos(i.getPhotos());
+            uploadedPhotos = userAccount.uploadPhotos(i.getPhotos(),i.getUploadConfig());
             UploadedPhoto firstPhoto = uploadedPhotos.get(0);
             String folderId = userAccount.createPhotoFolder(createFolderName(i.getFolder().getDir()), firstPhoto.getId());
             folder = new PhotoFolder(folderId, i.getFolder().getDir().getAbsolutePath());

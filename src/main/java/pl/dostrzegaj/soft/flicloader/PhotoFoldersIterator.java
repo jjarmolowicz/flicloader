@@ -11,11 +11,16 @@ import com.google.common.collect.Lists;
 
 class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
 
-    private static FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".jpg");
+    private static FileFilter filter = pathname -> {
+        String s = pathname.getName().toLowerCase();
+        return pathname.isDirectory() || s.endsWith(".jpg") || s.endsWith(".bmp")|| s.endsWith("mov");
+    };
     private File root;
+    private UploadConfig uploadConfig;
 
-    public PhotoFoldersIterator(File root) {
+    public PhotoFoldersIterator(File root, UploadConfig uploadConfig) {
         this.root = root;
+        this.uploadConfig = uploadConfig;
     }
 
     @Override
@@ -44,7 +49,7 @@ class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
                     if (!files.isEmpty()) {
                         nextElement =
                             new PhotoFolderInfo(new PhotoFolderDir(dir), files.stream().map(i -> new PhotoFile(i))
-                                .collect(Collectors.toList()));
+                                .collect(Collectors.toList()), uploadConfig);
                         return true;
                     }
                 }

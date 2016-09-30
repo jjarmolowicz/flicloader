@@ -13,23 +13,15 @@ import com.flickr4java.flickr.uploader.Uploader;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
-class FlickrUserImpl implements UserAccount {
+class FlickrAccountImpl implements UserAccount {
 
     private Flickr f;
     private Auth auth;
 
-    public FlickrUserImpl(Flickr f, Auth auth) {
+    public FlickrAccountImpl(Flickr f, Auth auth) {
         this.f = f;
         this.auth = auth;
         RequestContext.getRequestContext().setAuth(auth);
-    }
-
-    public Photosets getPhotosetsAsList() {
-        try {
-            return f.getPhotosetsInterface().getList(auth.getUser().getId());
-        } catch (FlickrException e) {
-            throw Throwables.propagate(e);
-        }
     }
 
     @Override
@@ -43,14 +35,14 @@ class FlickrUserImpl implements UserAccount {
     }
 
     @Override
-    public List<UploadedPhoto> uploadPhotos(final List<PhotoFile> photos) {
+    public List<UploadedPhoto> uploadPhotos(final List<PhotoFile> photos, UploadConfig config) {
         Uploader uploader = f.getUploader();
         List<UploadedPhoto> result = Lists.newArrayListWithCapacity(photos.size());
         for (PhotoFile photo : photos) {
             UploadMetaData metaData = new UploadMetaData();
-            metaData.setPublicFlag(false);
-            metaData.setFriendFlag(false);
-            metaData.setFamilyFlag(false);
+            metaData.setPublicFlag(config.getIsPublic());
+            metaData.setFriendFlag(config.getIsFriend());
+            metaData.setFamilyFlag(config.getIsFamily());
             String basefilename = photo.getFile().getName(); // "image.jpg";
             String title = basefilename;
             if (basefilename.lastIndexOf('.') > 0) {
