@@ -17,12 +17,15 @@ import liquibase.logging.LogLevel;
 import liquibase.resource.ClassLoaderResourceAccessor;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 
 class LocalCache {
 
     private Connection c;
     private PreparedStatement selectFolderStatement;
     private PreparedStatement insertFolderStatement;
+    private PreparedStatement selectPhotosStatement;
+    private PreparedStatement insertPhotosStatement;
 
     public LocalCache(final File dir) {
         initConnection(dir);
@@ -35,6 +38,9 @@ class LocalCache {
             selectFolderStatement =
                 c.prepareStatement("SELECT photofolder_id,photofolder_absolute_path FROM photofolder WHERE photofolder_absolute_path=?");
             insertFolderStatement = c.prepareStatement("INSERT INTO photofolder VALUES (?,?)");
+            selectPhotosStatement =
+                c.prepareStatement("SELECT photofile_absolute_path FROM photofile WHERE photofolder_id = ?");
+            insertPhotosStatement = c.prepareStatement("INSERT INTO photofile VALUES (?,?,?)");
         } catch (final SQLException e) {
             Throwables.propagate(e);
         }
@@ -87,9 +93,31 @@ class LocalCache {
     }
 
     public List<PhotoFile> getNonExistingPhotos(List<PhotoFile> photos, PhotoFolder folder) {
-        return null;
+        List<PhotoFile> result = Lists.newArrayList(photos);
+        try {
+            selectPhotosStatement.setString(1, folder.getId());
+            ResultSet resultSet = selectPhotosStatement.executeQuery();
+            while (resultSet.next()) {
+                String existingPath = resultSet.getString(1);
+                result.remove(new PhotoFile(new File(existingPath)));
+            }
+        } catch (final SQLException e) {
+            Throwables.propagate(e);
+        }
+        return result;
     }
 
     public void storeUploadedFiles(List<UploadedPhoto> photos, PhotoFolder folder) {
+        try {
+            for (UploadedPhoto photo : photos) {
+                insertPhotosStatement.setString(1, photo.getId());
+                insertPhotosStatement.setString(2, photo.getAbsoultePath());
+                insertPhotosStatement.setString(3, folder.getId());
+                insertPhotosStatement.addBatch();
+            }
+            insertPhotosStatement.executeBatch();
+        } catch (final SQLException e) {
+            Throwables.propagate(e);
+        }
     }
 }

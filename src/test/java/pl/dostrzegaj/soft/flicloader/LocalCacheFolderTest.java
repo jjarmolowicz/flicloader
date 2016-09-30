@@ -8,7 +8,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-public class LocalCacheTest {
+public class LocalCacheFolderTest {
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();

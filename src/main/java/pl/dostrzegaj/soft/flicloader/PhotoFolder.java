@@ -32,4 +32,13 @@ class PhotoFolder {
     public int hashCode() {
         return Objects.hash(id, absolutePath);
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("PhotoFolder{");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", absolutePath='").append(absolutePath).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }
