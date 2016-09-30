@@ -1,6 +1,8 @@
 package pl.dostrzegaj.soft.flicloader;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 import java.sql.*;
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +21,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
-class LocalCache {
+class LocalCache  implements Closeable{
 
     private Connection c;
     private PreparedStatement selectFolderStatement;
@@ -32,6 +34,8 @@ class LocalCache {
         applyLiquibase();
         prepareStatements();
     }
+
+
 
     private void prepareStatements() {
         try {
@@ -63,6 +67,7 @@ class LocalCache {
             c =
                 DriverManager.getConnection("jdbc:sqlite:" + dir.getAbsoluteFile() + File.separator + Main.PROJECT_NAME
                     + ".db");
+            c.setAutoCommit(true);
         } catch (Exception e) {
             Throwables.propagate(e);
         }
@@ -87,6 +92,7 @@ class LocalCache {
             insertFolderStatement.setString(1, folder.getId());
             insertFolderStatement.setString(2, folder.getAbsolutePath());
             insertFolderStatement.executeUpdate();
+            c.commit();
         } catch (final SQLException e) {
             Throwables.propagate(e);
         }
@@ -109,6 +115,9 @@ class LocalCache {
 
     public void storeUploadedFiles(List<UploadedPhoto> photos, PhotoFolder folder) {
         try {
+            if (photos.isEmpty()) {
+                return;
+            }
             for (UploadedPhoto photo : photos) {
                 insertPhotosStatement.setString(1, photo.getId());
                 insertPhotosStatement.setString(2, photo.getAbsoultePath());
@@ -116,8 +125,18 @@ class LocalCache {
                 insertPhotosStatement.addBatch();
             }
             insertPhotosStatement.executeBatch();
+            c.commit();
         } catch (final SQLException e) {
             Throwables.propagate(e);
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        try {
+            c.close();
+        } catch (SQLException e) {
+            throw new IOException(e);
         }
     }
 }

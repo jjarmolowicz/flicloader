@@ -26,4 +26,9 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="addSearchIndex" author="jj">
+        <createIndex tableName="photofile" indexName="photofile_photofolder_id">
+            <column name="photofolder_id"></column>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>

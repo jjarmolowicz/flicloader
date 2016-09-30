@@ -1,13 +1,14 @@
 package pl.dostrzegaj.soft.flicloader;
 
-import com.google.common.collect.Lists;
-
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
+
 class LazySender {
+
     private File root;
     private LocalCache localCache;
     private UserAccount userAccount;
@@ -20,17 +21,24 @@ class LazySender {
     }
 
     public void sendIfNeeded(PhotoFolderInfo i) {
+        if (i.getPhotos().isEmpty()) {
+            return;
+        }
         Optional<PhotoFolder> optionalFolder = localCache.getPhotoFolder(i.getFolder());
         PhotoFolder folder;
         List<UploadedPhoto> uploadedPhotos;
         if (optionalFolder.isPresent()) {
             folder = optionalFolder.get();
             uploadedPhotos = userAccount.uploadPhotos(localCache.getNonExistingPhotos(i.getPhotos(), folder));
-            userAccount.movePhotosToFolder(uploadedPhotos,folder);
-        }else {
+            userAccount.movePhotosToFolder(uploadedPhotos, folder);
+        } else {
             uploadedPhotos = userAccount.uploadPhotos(i.getPhotos());
-            folder = userAccount.createPhotoFolder(createFolderName(i.getFolder().getDir()));
-            userAccount.movePhotosToFolder(uploadedPhotos,folder);
+            UploadedPhoto firstPhoto = uploadedPhotos.get(0);
+            String folderId = userAccount.createPhotoFolder(createFolderName(i.getFolder().getDir()), firstPhoto.getId());
+            folder = new PhotoFolder(folderId, i.getFolder().getDir().getAbsolutePath());
+            if (uploadedPhotos.size() >1) { //first picture is already a part of photoFolder
+                userAccount.movePhotosToFolder(uploadedPhotos.subList(1, uploadedPhotos.size()), folder);
+            }
             localCache.storePhotoFolder(folder);
         }
         localCache.storeUploadedFiles(uploadedPhotos, folder);
@@ -39,11 +47,11 @@ class LazySender {
     private String createFolderName(File folder) {
         List<String> nameParts = Lists.newArrayList();
         File i = folder;
-        while(!i.equals(root)) {
-            nameParts.add(0,i.getName());
+        while (!i.equals(root)) {
+            nameParts.add(0, i.getName());
             i = i.getParentFile();
         }
-        nameParts.add(0,root.getName());
+        nameParts.add(0, root.getName());
 
         return nameParts.stream().collect(Collectors.joining("/"));
     }

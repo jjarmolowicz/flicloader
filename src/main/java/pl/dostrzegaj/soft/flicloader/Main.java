@@ -26,9 +26,11 @@ public class Main {
         UserAccount userAccount = authEnforcer.enforceAuthentication();
 
         for (File dir : dirsToBeSynced) {
-            LazySender sender = new LazySender(dir,new LocalCache(dir), userAccount);
-            for (PhotoFolderInfo i : new PhotoFoldersIterator(dir)) {
-                sender.sendIfNeeded(i);
+            try (LocalCache localCache = new LocalCache(dir)) {
+                LazySender sender = new LazySender(dir, localCache, userAccount);
+                for (PhotoFolderInfo i : new PhotoFoldersIterator(dir)) {
+                    sender.sendIfNeeded(i);
+                }
             }
         }
 
@@ -37,12 +39,12 @@ public class Main {
     static Properties verifyInputAndProduceProperties(String[] args) throws IOException {
         if (args.length != 1) {
             throw new IllegalArgumentException(
-                "One argument is required. You must point to properties file containing basic key/token information");
+                    "One argument is required. You must point to properties file containing basic key/token information");
         }
         File file = new File(args[0]);
         if (!file.exists()) {
             throw new IllegalArgumentException(MessageFormatter.format("Provided file {} does not exist!", file.getPath())
-                .getMessage());
+                    .getMessage());
         }
         Properties properties = new Properties();
         try (InputStream stream = new BufferedInputStream(new FileInputStream(file))) {

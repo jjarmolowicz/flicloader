@@ -1,10 +1,9 @@
 package pl.dostrzegaj.soft.flicloader;
 
-import java.io.File;
 import java.util.List;
 
 interface UserAccount {
-    PhotoFolder createPhotoFolder(String name);
+    String createPhotoFolder(String title, String primaryPhotoId);
 
     List<UploadedPhoto> uploadPhotos(List<PhotoFile> photos);
 

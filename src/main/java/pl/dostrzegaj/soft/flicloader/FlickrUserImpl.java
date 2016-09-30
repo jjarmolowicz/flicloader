@@ -7,6 +7,7 @@ import com.flickr4java.flickr.FlickrException;
 import com.flickr4java.flickr.RequestContext;
 import com.flickr4java.flickr.auth.Auth;
 import com.flickr4java.flickr.photosets.Photosets;
+import com.flickr4java.flickr.photosets.PhotosetsInterface;
 import com.flickr4java.flickr.uploader.UploadMetaData;
 import com.flickr4java.flickr.uploader.Uploader;
 import com.google.common.base.Throwables;
@@ -32,8 +33,13 @@ class FlickrUserImpl implements UserAccount {
     }
 
     @Override
-    public PhotoFolder createPhotoFolder(String name) {
-        return null;
+    public String createPhotoFolder(String title, String primaryPhotoId) {
+        PhotosetsInterface i = f.getPhotosetsInterface();
+        try {
+            return i.create(title, "", primaryPhotoId).getId();
+        } catch (FlickrException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     @Override
@@ -66,6 +72,12 @@ class FlickrUserImpl implements UserAccount {
 
     @Override
     public void movePhotosToFolder(final List<UploadedPhoto> uploadedPhotos, final PhotoFolder folder) {
-
+        for (UploadedPhoto uploadedPhoto : uploadedPhotos) {
+            try {
+                f.getPhotosetsInterface().addPhoto(folder.getId(), uploadedPhoto.getId());
+            } catch (FlickrException e) {
+                Throwables.propagate(e);
+            }
+        }
     }
 }
