@@ -4,12 +4,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
-class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
+class PhotoFoldersIterable implements Iterable<PhotoFolderInfo> {
 
     private static FileFilter filter = pathname -> {
         String s = pathname.getName().toLowerCase();
@@ -18,7 +17,7 @@ class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
     private File root;
     private UploadConfig uploadConfig;
 
-    public PhotoFoldersIterator(File root, UploadConfig uploadConfig) {
+    public PhotoFoldersIterable(File root, UploadConfig uploadConfig) {
         this.root = root;
         this.uploadConfig = uploadConfig;
     }
@@ -27,10 +26,10 @@ class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
     public Iterator<PhotoFolderInfo> iterator() {
         return new Iterator<PhotoFolderInfo>() {
 
-            private final Queue<File> dirs;
+            private final List<File> dirs;
             private PhotoFolderInfo nextElement;
             {
-                dirs = Lists.newLinkedList();
+                dirs = Lists.newArrayList();
                 dirs.add(root);
             }
 
@@ -38,14 +37,16 @@ class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
             public boolean hasNext() {
                 while (!dirs.isEmpty()) {
                     List<File> files = Lists.newArrayList();
-                    File dir = dirs.poll();
+                    File dir = dirs.remove(0);
+                    List<File> subdirs = Lists.newArrayList();
                     for (File file : dir.listFiles(filter)) {
                         if (file.isDirectory()) {
-                            dirs.add(file);
+                            subdirs.add( file);
                         } else {
                             files.add(file);
                         }
                     }
+                    dirs.addAll(0,subdirs);
                     if (!files.isEmpty()) {
                         nextElement =
                             new PhotoFolderInfo(new PhotoFolderDir(root, dir), files.stream()

@@ -18,7 +18,7 @@ public class PhotoFoldersProviderTest {
     @Test
     public void givenEmptyDirThenEmptyOutput() throws IOException {
         File tempDir = folder.getRoot();
-        PhotoFoldersIterator photoFolderInfos = new PhotoFoldersIterator(tempDir,new UploadConfig(new Properties()));
+        PhotoFoldersIterable photoFolderInfos = new PhotoFoldersIterable(tempDir,new UploadConfig(new Properties()));
         Assert.assertFalse(photoFolderInfos.iterator().hasNext());
     }
 
@@ -26,7 +26,7 @@ public class PhotoFoldersProviderTest {
     public void givenDirWithFilesThenInfoProduced() throws IOException {
         File tempDir = folder.getRoot();
         new File(tempDir, "photo1.jpg").createNewFile();
-        PhotoFoldersIterator photoFolderInfos = new PhotoFoldersIterator(tempDir,new UploadConfig(new Properties()));
+        PhotoFoldersIterable photoFolderInfos = new PhotoFoldersIterable(tempDir,new UploadConfig(new Properties()));
         Iterator<PhotoFolderInfo> iterator = photoFolderInfos.iterator();
         Assert.assertTrue(iterator.hasNext());
         PhotoFolderInfo next = iterator.next();
@@ -40,7 +40,7 @@ public class PhotoFoldersProviderTest {
         File subdir = new File(tempDir, "subdir");
         subdir.mkdir();
         new File(subdir, "photo1.jpg").createNewFile();
-        PhotoFoldersIterator photoFolderInfos = new PhotoFoldersIterator(tempDir,new UploadConfig(new Properties()));
+        PhotoFoldersIterable photoFolderInfos = new PhotoFoldersIterable(tempDir,new UploadConfig(new Properties()));
         Iterator<PhotoFolderInfo> iterator = photoFolderInfos.iterator();
         Assert.assertTrue(iterator.hasNext());
         PhotoFolderInfo next = iterator.next();
@@ -57,7 +57,7 @@ public class PhotoFoldersProviderTest {
         subdir.mkdir();
         new File(subdir, "photo1.jpg").createNewFile();
         new File(subdir, "photo2.jpg").createNewFile();
-        PhotoFoldersIterator photoFolderInfos = new PhotoFoldersIterator(tempDir,new UploadConfig(new Properties()));
+        PhotoFoldersIterable photoFolderInfos = new PhotoFoldersIterable(tempDir,new UploadConfig(new Properties()));
         Iterator<PhotoFolderInfo> iterator = photoFolderInfos.iterator();
         Assert.assertTrue(iterator.hasNext());
         PhotoFolderInfo next = iterator.next();

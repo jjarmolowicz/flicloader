@@ -19,4 +19,13 @@ class PhotoFolderDir {
     public RelativePath getRelativePath() {
         return relativePath;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("PhotoFolderDir{");
+        sb.append("dir=").append(dir);
+        sb.append(", relativePath=").append(relativePath);
+        sb.append('}');
+        return sb.toString();
+    }
 }

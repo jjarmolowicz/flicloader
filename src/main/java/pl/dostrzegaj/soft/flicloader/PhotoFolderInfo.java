@@ -24,4 +24,14 @@ class PhotoFolderInfo {
     public UploadConfig getUploadConfig() {
         return uploadConfig;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("PhotoFolderInfo{");
+        sb.append("folder=").append(folder);
+        sb.append(", photos=").append(photos);
+        sb.append(", uploadConfig=").append(uploadConfig);
+        sb.append('}');
+        return sb.toString();
+    }
 }
