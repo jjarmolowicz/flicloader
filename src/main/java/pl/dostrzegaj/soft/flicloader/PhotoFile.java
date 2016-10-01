@@ -6,9 +6,11 @@ import java.util.Objects;
 class PhotoFile {
 
     private final File file;
+    private RelativePath relativePath;
 
-    public PhotoFile(File file) {
+    public PhotoFile(File root, File file) {
         this.file = file;
+        this.relativePath = new RelativePath(root, file);
     }
 
     public File getFile() {
@@ -20,12 +22,13 @@ class PhotoFile {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PhotoFile photoFile = (PhotoFile) o;
-        return Objects.equals(file, photoFile.file);
+        return Objects.equals(file, photoFile.file) &&
+                Objects.equals(relativePath, photoFile.relativePath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(file);
+        return Objects.hash(file, relativePath);
     }
 
     @Override
@@ -34,5 +37,9 @@ class PhotoFile {
         sb.append("file=").append(file);
         sb.append('}');
         return sb.toString();
+    }
+
+    public RelativePath getRelativePath() {
+        return relativePath;
     }
 }

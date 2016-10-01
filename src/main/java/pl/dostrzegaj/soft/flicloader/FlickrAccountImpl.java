@@ -56,7 +56,7 @@ class FlickrAccountImpl implements UserAccount {
 
             try {
                 String photoId = uploader.upload(photo.getFile(), metaData);
-                result.add(new UploadedPhoto(photoId, photo.getFile().getAbsolutePath()));
+                result.add(new UploadedPhoto(photoId, photo.getRelativePath()));
             } catch (FlickrException e) {
                 Throwables.propagate(e);
             }
@@ -70,7 +70,7 @@ class FlickrAccountImpl implements UserAccount {
     }
 
     @Override
-    public void movePhotosToFolder(final List<UploadedPhoto> uploadedPhotos, final PhotoFolder folder) {
+    public void movePhotosToFolder(final List<UploadedPhoto> uploadedPhotos, final PhotoFolderId folder) {
         for (UploadedPhoto uploadedPhoto : uploadedPhotos) {
             try {
                 f.getPhotosetsInterface().addPhoto(folder.getId(), uploadedPhoto.getId());

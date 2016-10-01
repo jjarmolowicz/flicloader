@@ -10,7 +10,7 @@
             <column name="photofolder_id" type="text">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="photofolder_absolute_path" type="text">
+            <column name="photofolder_relative_path" type="text">
                 <constraints nullable="false" unique="true"/>
             </column>
         </createTable>
@@ -18,7 +18,7 @@
             <column name="photofile_id" type="text">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="photofile_absolute_path" type="text">
+            <column name="photofile_relative_path" type="text">
                 <constraints nullable="false" unique="true"/>
             </column>
             <column name="photofolder_id" type="text">

@@ -13,7 +13,7 @@ class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
 
     private static FileFilter filter = pathname -> {
         String s = pathname.getName().toLowerCase();
-        return pathname.isDirectory() || s.endsWith(".jpg") || s.endsWith(".bmp")|| s.endsWith("mov");
+        return pathname.isDirectory() || s.endsWith(".jpg") || s.endsWith(".bmp") || s.endsWith("mov");
     };
     private File root;
     private UploadConfig uploadConfig;
@@ -48,8 +48,8 @@ class PhotoFoldersIterator implements Iterable<PhotoFolderInfo> {
                     }
                     if (!files.isEmpty()) {
                         nextElement =
-                            new PhotoFolderInfo(new PhotoFolderDir(dir), files.stream().map(i -> new PhotoFile(i))
-                                .collect(Collectors.toList()), uploadConfig);
+                            new PhotoFolderInfo(new PhotoFolderDir(root, dir), files.stream()
+                                .map(i -> new PhotoFile(dir, i)).collect(Collectors.toList()), uploadConfig);
                         return true;
                     }
                 }

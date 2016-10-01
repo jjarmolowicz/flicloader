@@ -7,5 +7,5 @@ interface UserAccount {
 
     List<UploadedPhoto> uploadPhotos(List<PhotoFile> photos, UploadConfig config);
 
-    void movePhotosToFolder(List<UploadedPhoto> uploadedPhotos, PhotoFolder folder);
+    void movePhotosToFolder(List<UploadedPhoto> uploadedPhotos, PhotoFolderId folder);
 }

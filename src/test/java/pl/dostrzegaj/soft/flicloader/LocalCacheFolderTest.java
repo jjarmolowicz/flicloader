@@ -1,6 +1,7 @@
 package pl.dostrzegaj.soft.flicloader;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 
 import org.junit.Assert;
@@ -14,24 +15,25 @@ public class LocalCacheFolderTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Test
-    public void givenNonStoredFolderThenEmptyResponseReturned() {
+    public void givenNonStoredFolderThenEmptyResponseReturned() throws IOException {
         LocalCache localCache = new LocalCache(folder.getRoot());
 
-        Optional<PhotoFolder> result = localCache.getPhotoFolder(new PhotoFolderDir(new File("anyDirWillDo")));
+        Optional<PhotoFolderId> result = localCache.getPhotoFolder(new PhotoFolderDir(folder.getRoot(), folder.newFolder()));
 
         Assert.assertFalse(result.isPresent());
     }
 
     @Test
-    public void givenAlreadyStoredFolderThanItsReturned() {
+    public void givenAlreadyStoredFolderThanItsReturned() throws IOException {
         LocalCache localCache = new LocalCache(folder.getRoot());
 
-        File dirForPhoto = new File("anyDirWillDo");
-        PhotoFolder photoFolder = new PhotoFolder("ID",dirForPhoto.getAbsolutePath());
+        File dirForPhoto = folder.newFolder();
+        String id = "ID";
+        PhotoFolder photoFolder = new PhotoFolder(id, new RelativePath(folder.getRoot(), dirForPhoto));
         localCache.storePhotoFolder(photoFolder);
-        Optional<PhotoFolder> result = localCache.getPhotoFolder( new PhotoFolderDir(dirForPhoto));
+        Optional<PhotoFolderId> result = localCache.getPhotoFolder(new PhotoFolderDir(folder.getRoot(), dirForPhoto));
 
         Assert.assertTrue(result.isPresent());
-        Assert.assertEquals(photoFolder, result.get());
+        Assert.assertEquals(new PhotoFolderId(id), result.get());
     }
 }

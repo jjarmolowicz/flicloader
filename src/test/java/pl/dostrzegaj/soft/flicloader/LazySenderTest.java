@@ -27,15 +27,15 @@ public class LazySenderTest {
         LocalCache localCache = Mockito.mock(LocalCache.class);
         UserAccount userAccount = Mockito.mock(UserAccount.class);
         LazySender sender = new LazySender(folder.getRoot(), localCache, userAccount);
-        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot());
+        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot(),this.folder.getRoot());
         String photoId = "1";
         File photoFile = this.folder.newFile();
         PhotoFolderInfo photoInfo =
-            new PhotoFolderInfo(folder, Collections.singletonList(new PhotoFile(photoFile)), new UploadConfig(
-                new Properties()));
+            new PhotoFolderInfo(folder, Collections.singletonList(new PhotoFile(this.folder.getRoot(), photoFile)),
+                new UploadConfig(new Properties()));
         Mockito.when(localCache.getPhotoFolder(folder)).thenReturn(Optional.empty());
         Mockito.when(userAccount.uploadPhotos(Mockito.anyList(), Mockito.any())).thenReturn(
-            Lists.newArrayList(new UploadedPhoto(photoId, photoFile.getAbsolutePath())));
+            Lists.newArrayList(new UploadedPhoto(photoId, new RelativePath(this.folder.getRoot(), photoFile))));
 
         // when
         sender.sendIfNeeded(photoInfo);
@@ -50,15 +50,15 @@ public class LazySenderTest {
         LocalCache localCache = Mockito.mock(LocalCache.class);
         UserAccount userAccount = Mockito.mock(UserAccount.class);
         LazySender sender = new LazySender(folder.getRoot(), localCache, userAccount);
-        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot());
+        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot(),this.folder.getRoot());
         String photoId = "1";
         File photoFile = this.folder.newFile();
         PhotoFolderInfo photoInfo =
-            new PhotoFolderInfo(folder, Collections.singletonList(new PhotoFile(photoFile)), new UploadConfig(
-                new Properties()));
+            new PhotoFolderInfo(folder, Collections.singletonList(new PhotoFile(this.folder.getRoot(), photoFile)),
+                new UploadConfig(new Properties()));
         Mockito.when(localCache.getPhotoFolder(folder)).thenReturn(Optional.empty());
         Mockito.when(userAccount.uploadPhotos(Mockito.anyList(), Mockito.any())).thenReturn(
-            Lists.newArrayList(new UploadedPhoto(photoId, photoFile.getAbsolutePath())));
+            Lists.newArrayList(new UploadedPhoto(photoId, new RelativePath(this.folder.getRoot(), photoFile))));
 
         // when
         sender.sendIfNeeded(photoInfo);
@@ -70,19 +70,20 @@ public class LazySenderTest {
     @Test
     public void givenNewFileInExistingPhotoFolderThenPhotoUploadedAndStoredInCache() throws IOException {
         // given
-        PhotoFolder photoFolder = new PhotoFolder("", "");
-        List<PhotoFile> photos = Collections.singletonList(new PhotoFile(folder.newFile()));
+        PhotoFolderId photoFolder = new PhotoFolderId("1");
+        List<PhotoFile> photos = Collections.singletonList(new PhotoFile(folder.getRoot(), folder.newFile()));
 
         LocalCache localCache = Mockito.mock(LocalCache.class);
         UserAccount userAccount = Mockito.mock(UserAccount.class);
         LazySender sender = new LazySender(folder.getRoot(), localCache, userAccount);
-        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot());
+        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot(),this.folder.getRoot());
         PhotoFolderInfo photoInfo = new PhotoFolderInfo(folder, photos, new UploadConfig(new Properties()));
 
         Mockito.when(localCache.getPhotoFolder(folder)).thenReturn(Optional.of(photoFolder));
         Mockito.when(localCache.getNonExistingPhotos(photos, photoFolder)).thenReturn(photos);
         List<UploadedPhoto> uploaded =
-            photos.stream().map(i -> new UploadedPhoto(i.getFile().getName(), i.getFile().getAbsolutePath()))
+            photos.stream()
+                .map(i -> new UploadedPhoto(i.getFile().getName(), new RelativePath(this.folder.getRoot(), i.getFile())))
                 .collect(Collectors.toList());
         Mockito.when(userAccount.uploadPhotos(Mockito.eq(photos), Mockito.any())).thenReturn(Lists.newArrayList(uploaded));
 
@@ -98,17 +99,18 @@ public class LazySenderTest {
     @Test
     public void givenNewFileInNewPhotoFolderThenAllPhotoUploadedAndStoredInCache() throws IOException {
         // given
-        PhotoFile photoFile = new PhotoFile(folder.newFile());
+        PhotoFile photoFile = new PhotoFile(folder.getRoot(), folder.newFile());
         List<PhotoFile> photos = Collections.singletonList(photoFile);
 
         LocalCache localCache = Mockito.mock(LocalCache.class);
         UserAccount userAccount = Mockito.mock(UserAccount.class);
         LazySender sender = new LazySender(folder.getRoot(), localCache, userAccount);
-        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot());
+        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot(),this.folder.getRoot());
         PhotoFolderInfo photoInfo = new PhotoFolderInfo(folder, photos, new UploadConfig(new Properties()));
 
         Mockito.when(localCache.getPhotoFolder(folder)).thenReturn(Optional.empty());
-        List<UploadedPhoto> uploaded = Lists.newArrayList(new UploadedPhoto("id", photoFile.getFile().getAbsolutePath()));
+        List<UploadedPhoto> uploaded =
+            Lists.newArrayList(new UploadedPhoto("id", new RelativePath(this.folder.getRoot(), photoFile.getFile())));
         Mockito.when(userAccount.uploadPhotos(Mockito.eq(photos), Mockito.any())).thenReturn(Lists.newArrayList(uploaded));
 
         // when
@@ -116,26 +118,27 @@ public class LazySenderTest {
 
         // then
         Mockito.verify(userAccount).createPhotoFolder(Mockito.anyString(), Mockito.anyString());
-        Mockito.verify(userAccount).uploadPhotos(Mockito.eq( photos), Mockito.any());
+        Mockito.verify(userAccount).uploadPhotos(Mockito.eq(photos), Mockito.any());
         Mockito.verify(localCache).storeUploadedFiles(Mockito.eq(uploaded), Mockito.any());
     }
 
     @Test
     public void givenNewFilesInNewPhotoFolderThenAllPhotoUploadedAndStoredInCache() throws IOException {
         // given
-        PhotoFile photoFile1 = new PhotoFile(folder.newFile());
-        PhotoFile photoFile2 = new PhotoFile(folder.newFile());
+        PhotoFile photoFile1 = new PhotoFile(folder.getRoot(), folder.newFile());
+        PhotoFile photoFile2 = new PhotoFile(folder.getRoot(), folder.newFile());
         List<PhotoFile> photos = Lists.newArrayList(photoFile1, photoFile2);
 
         LocalCache localCache = Mockito.mock(LocalCache.class);
         UserAccount userAccount = Mockito.mock(UserAccount.class);
         LazySender sender = new LazySender(folder.getRoot(), localCache, userAccount);
-        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot());
+        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot(),this.folder.getRoot());
         PhotoFolderInfo photoInfo = new PhotoFolderInfo(folder, photos, new UploadConfig(new Properties()));
 
         Mockito.when(localCache.getPhotoFolder(folder)).thenReturn(Optional.empty());
         List<UploadedPhoto> uploaded =
-            photos.stream().map(i -> new UploadedPhoto(i.getFile().getName(), i.getFile().getAbsolutePath()))
+            photos.stream()
+                .map(i -> new UploadedPhoto(i.getFile().getName(), new RelativePath(this.folder.getRoot(), i.getFile())))
                 .collect(Collectors.toList());
         Mockito.when(userAccount.uploadPhotos(Mockito.eq(photos), Mockito.any())).thenReturn(Lists.newArrayList(uploaded));
 
@@ -144,7 +147,7 @@ public class LazySenderTest {
 
         // then
         Mockito.verify(userAccount).createPhotoFolder(Mockito.anyString(), Mockito.anyString());
-        Mockito.verify(userAccount).uploadPhotos(Mockito.eq( photos), Mockito.any());
+        Mockito.verify(userAccount).uploadPhotos(Mockito.eq(photos), Mockito.any());
         CustomTypeSafeMatcher<List<UploadedPhoto>> customTypeSafeMatcher =
             new CustomTypeSafeMatcher<List<UploadedPhoto>>("Second uploaded file") {
 
@@ -160,13 +163,13 @@ public class LazySenderTest {
     @Test
     public void givenNewFileInExistingPhotoFolderThenPhotoStoredInLocalCache() throws IOException {
         // given
-        PhotoFolder photoFolder = new PhotoFolder("", "");
-        List<PhotoFile> photos = Collections.singletonList(new PhotoFile(folder.newFile()));
+        PhotoFolderId photoFolder = new PhotoFolderId("");
+        List<PhotoFile> photos = Collections.singletonList(new PhotoFile(folder.getRoot(), folder.newFile()));
 
         LocalCache localCache = Mockito.mock(LocalCache.class);
         UserAccount userAccount = Mockito.mock(UserAccount.class);
         LazySender sender = new LazySender(folder.getRoot(), localCache, userAccount);
-        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot());
+        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot(),this.folder.getRoot());
         PhotoFolderInfo photoInfo = new PhotoFolderInfo(folder, photos, new UploadConfig(new Properties()));
 
         Mockito.when(localCache.getPhotoFolder(folder)).thenReturn(Optional.of(photoFolder));
@@ -180,14 +183,14 @@ public class LazySenderTest {
 
     @Test
     public void givenAlreadySentPhotosThenNoUploadPerformed() throws IOException {
-        PhotoFolder photoFolder = new PhotoFolder("", "");
-        List<PhotoFile> photos = Collections.singletonList(new PhotoFile(folder.newFile()));
+        PhotoFolderId photoFolder = new PhotoFolderId("");
+        List<PhotoFile> photos = Collections.singletonList(new PhotoFile(folder.getRoot(),folder.newFile()));
         List<PhotoFile> emptyList = Collections.emptyList();
 
         LocalCache localCache = Mockito.mock(LocalCache.class);
         UserAccount userAccount = Mockito.mock(UserAccount.class);
         LazySender sender = new LazySender(folder.getRoot(), localCache, userAccount);
-        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot());
+        PhotoFolderDir folder = new PhotoFolderDir(this.folder.getRoot(),this.folder.getRoot());
         PhotoFolderInfo photoInfo = new PhotoFolderInfo(folder, photos, new UploadConfig(new Properties()));
 
         Mockito.when(localCache.getPhotoFolder(folder)).thenReturn(Optional.of(photoFolder));

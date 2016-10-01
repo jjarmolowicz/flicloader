@@ -2,19 +2,19 @@ package pl.dostrzegaj.soft.flicloader;
 
 class UploadedPhoto {
     private String id;
-    private String absoultePath;
+    private String relativePath;
 
-    public UploadedPhoto(final String id, final String absoultePath) {
+    public UploadedPhoto(final String id, RelativePath path) {
 
         this.id = id;
-        this.absoultePath = absoultePath;
+        this.relativePath = path.getPath();
     }
 
     public String getId() {
         return id;
     }
 
-    public String getAbsoultePath() {
-        return absoultePath;
+    public String getRelativePath() {
+        return relativePath;
     }
 }

@@ -40,10 +40,10 @@ class LocalCache  implements Closeable{
     private void prepareStatements() {
         try {
             selectFolderStatement =
-                c.prepareStatement("SELECT photofolder_id,photofolder_absolute_path FROM photofolder WHERE photofolder_absolute_path=?");
+                c.prepareStatement("SELECT photofolder_id FROM photofolder WHERE photofolder_relative_path=?");
             insertFolderStatement = c.prepareStatement("INSERT INTO photofolder VALUES (?,?)");
             selectPhotosStatement =
-                c.prepareStatement("SELECT photofile_absolute_path FROM photofile WHERE photofolder_id = ?");
+                c.prepareStatement("SELECT photofile_relative_path FROM photofile WHERE photofolder_id = ?");
             insertPhotosStatement = c.prepareStatement("INSERT INTO photofile VALUES (?,?,?)");
         } catch (final SQLException e) {
             Throwables.propagate(e);
@@ -73,13 +73,12 @@ class LocalCache  implements Closeable{
         }
     }
 
-    public Optional<PhotoFolder> getPhotoFolder(PhotoFolderDir folder) {
+    public Optional<PhotoFolderId> getPhotoFolder(PhotoFolderDir folder) {
         try {
-            selectFolderStatement.setString(1, folder.getDir().getAbsolutePath());
+            selectFolderStatement.setString(1, folder.getRelativePath().getPath());
             ResultSet resultSet = selectFolderStatement.executeQuery();
             if (resultSet.next()) {
-                return Optional.of(new PhotoFolder(resultSet.getString("photofolder_id"), resultSet
-                    .getString("photofolder_absolute_path")));
+                return Optional.of(new PhotoFolderId(resultSet.getString("photofolder_id")));
             }
         } catch (final SQLException e) {
             Throwables.propagate(e);
@@ -90,7 +89,7 @@ class LocalCache  implements Closeable{
     public void storePhotoFolder(PhotoFolder folder) {
         try {
             insertFolderStatement.setString(1, folder.getId());
-            insertFolderStatement.setString(2, folder.getAbsolutePath());
+            insertFolderStatement.setString(2, folder.getRelativePath());
             insertFolderStatement.executeUpdate();
             c.commit();
         } catch (final SQLException e) {
@@ -98,14 +97,18 @@ class LocalCache  implements Closeable{
         }
     }
 
-    public List<PhotoFile> getNonExistingPhotos(List<PhotoFile> photos, PhotoFolder folder) {
+    public List<PhotoFile> getNonExistingPhotos(List<PhotoFile> photos, PhotoFolderId folder) {
         List<PhotoFile> result = Lists.newArrayList(photos);
         try {
             selectPhotosStatement.setString(1, folder.getId());
             ResultSet resultSet = selectPhotosStatement.executeQuery();
             while (resultSet.next()) {
                 String existingPath = resultSet.getString(1);
-                result.remove(new PhotoFile(new File(existingPath)));
+                for (int i=0;i<result.size();i++) {
+                    if (result.get(i).getRelativePath().getPath().equals(existingPath)) {
+                        result.remove(i);
+                    }
+                }
             }
         } catch (final SQLException e) {
             Throwables.propagate(e);
@@ -113,14 +116,14 @@ class LocalCache  implements Closeable{
         return result;
     }
 
-    public void storeUploadedFiles(List<UploadedPhoto> photos, PhotoFolder folder) {
+    public void storeUploadedFiles(List<UploadedPhoto> photos, PhotoFolderId folder) {
         try {
             if (photos.isEmpty()) {
                 return;
             }
             for (UploadedPhoto photo : photos) {
                 insertPhotosStatement.setString(1, photo.getId());
-                insertPhotosStatement.setString(2, photo.getAbsoultePath());
+                insertPhotosStatement.setString(2, photo.getRelativePath());
                 insertPhotosStatement.setString(3, folder.getId());
                 insertPhotosStatement.addBatch();
             }

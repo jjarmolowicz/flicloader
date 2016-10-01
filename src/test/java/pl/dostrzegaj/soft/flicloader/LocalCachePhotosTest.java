@@ -9,7 +9,6 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.matchers.JUnitMatchers;
 import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.Lists;
@@ -23,9 +22,9 @@ public class LocalCachePhotosTest {
     public void givenNonStoredFilesThenAllOfThemAreReturned() {
         LocalCache localCache = new LocalCache(folder.getRoot());
 
-        List<PhotoFile> photos = Collections.singletonList(new PhotoFile(new File("sth")));
-        PhotoFolder photoFolder = new PhotoFolder("1", "path");
-        List<PhotoFile> nonExistingPhotos = localCache.getNonExistingPhotos(photos, photoFolder);
+        List<PhotoFile> photos = Collections.singletonList(new PhotoFile(folder.getRoot(), new File("sth")));
+        PhotoFolderId photoFolderId = new PhotoFolderId("1");
+        List<PhotoFile> nonExistingPhotos = localCache.getNonExistingPhotos(photos, photoFolderId);
 
         Assert.assertEquals(photos, nonExistingPhotos);
     }
@@ -34,14 +33,18 @@ public class LocalCachePhotosTest {
     public void givenStoredFilesThenNoneOfThemReturned() throws IOException {
         LocalCache localCache = new LocalCache(folder.getRoot());
 
-        PhotoFile photoFile = new PhotoFile(folder.newFile());
+        File innerFolder = this.folder.newFolder();
+        PhotoFile photoFile = new PhotoFile(innerFolder, folder.newFile());
         List<PhotoFile> photos = Collections.singletonList(photoFile);
-        PhotoFolder photoFolder = new PhotoFolder("1", "path");
-        List<UploadedPhoto> uploadedPhotos = Lists.newArrayList(new UploadedPhoto("1", photoFile.getFile().getAbsolutePath()));
+        String id = "1";
+        PhotoFolderId photoFolderId = new PhotoFolderId(id);
+        PhotoFolder photoFolder = new PhotoFolder(id, new RelativePath(folder.getRoot(), innerFolder));
+        List<UploadedPhoto> uploadedPhotos =
+            Lists.newArrayList(new UploadedPhoto("1", new RelativePath(innerFolder, photoFile.getFile())));
 
         localCache.storePhotoFolder(photoFolder);
-        localCache.storeUploadedFiles(uploadedPhotos, photoFolder);
-        List<PhotoFile> nonExistingPhotos = localCache.getNonExistingPhotos(photos, photoFolder);
+        localCache.storeUploadedFiles(uploadedPhotos, photoFolderId);
+        List<PhotoFile> nonExistingPhotos = localCache.getNonExistingPhotos(photos, photoFolderId);
 
         Assert.assertTrue(nonExistingPhotos.isEmpty());
     }
@@ -50,16 +53,21 @@ public class LocalCachePhotosTest {
     public void givenSomeStoredFilesThenNonStoredReturned() throws IOException {
         LocalCache localCache = new LocalCache(folder.getRoot());
 
-        PhotoFile photoFile1 = new PhotoFile(folder.newFile());
-        PhotoFile photoFile2 = new PhotoFile(folder.newFile());
-        PhotoFile photoFile3 = new PhotoFile(folder.newFile());
-        List<PhotoFile> photos = Lists.newArrayList(photoFile1,photoFile2,photoFile3);
-        PhotoFolder photoFolder = new PhotoFolder("1", "path");
-        List<UploadedPhoto> uploadedPhotos = Lists.newArrayList(new UploadedPhoto("1", photoFile1.getFile().getAbsolutePath()),new UploadedPhoto("3", photoFile3.getFile().getAbsolutePath()));
+        File innerFolder = this.folder.newFolder();
+        PhotoFile photoFile1 = new PhotoFile(innerFolder, folder.newFile());
+        PhotoFile photoFile2 = new PhotoFile(innerFolder, folder.newFile());
+        PhotoFile photoFile3 = new PhotoFile(innerFolder, folder.newFile());
+        List<PhotoFile> photos = Lists.newArrayList(photoFile1, photoFile2, photoFile3);
+        String id = "1";
+        PhotoFolderId photoFolderId = new PhotoFolderId(id);
+        PhotoFolder photoFolder = new PhotoFolder(id, new RelativePath(this.folder.getRoot(), innerFolder));
+        List<UploadedPhoto> uploadedPhotos =
+            Lists.newArrayList(new UploadedPhoto("1", new RelativePath(innerFolder, photoFile1.getFile())),
+                new UploadedPhoto("3", new RelativePath(innerFolder, photoFile3.getFile())));
 
         localCache.storePhotoFolder(photoFolder);
-        localCache.storeUploadedFiles(uploadedPhotos, photoFolder);
-        List<PhotoFile> nonExistingPhotos = localCache.getNonExistingPhotos(photos, photoFolder);
+        localCache.storeUploadedFiles(uploadedPhotos, photoFolderId);
+        List<PhotoFile> nonExistingPhotos = localCache.getNonExistingPhotos(photos, photoFolderId);
 
         Assert.assertThat(nonExistingPhotos, CoreMatchers.hasItem(photoFile2));
         Assert.assertThat(nonExistingPhotos, CoreMatchers.not(CoreMatchers.hasItem(photoFile1)));
@@ -70,16 +78,18 @@ public class LocalCachePhotosTest {
     public void givenStoredFilesButInOtherFolderThenAllReturned() throws IOException {
         LocalCache localCache = new LocalCache(folder.getRoot());
 
-        PhotoFile photoFile = new PhotoFile(folder.newFile());
+        File innerFolder = folder.newFolder();
+        PhotoFile photoFile = new PhotoFile(innerFolder, folder.newFile());
         List<PhotoFile> photos = Collections.singletonList(photoFile);
-        PhotoFolder photoFolder1 = new PhotoFolder("1", "path1");
-        PhotoFolder photoFolder2 = new PhotoFolder("2", "path2");
-        List<UploadedPhoto> uploadedPhotos = Lists.newArrayList(new UploadedPhoto("1", photoFile.getFile().getAbsolutePath()));
+        PhotoFolder photoFolder1 = new PhotoFolder("1", new RelativePath(folder.getRoot(), innerFolder));
+        PhotoFolder photoFolder2 = new PhotoFolder("2", new RelativePath(folder.getRoot(), folder.newFolder()));
+        List<UploadedPhoto> uploadedPhotos =
+            Lists.newArrayList(new UploadedPhoto("1", new RelativePath(folder.getRoot(), photoFile.getFile())));
 
         localCache.storePhotoFolder(photoFolder1);
         localCache.storePhotoFolder(photoFolder2);
-        localCache.storeUploadedFiles(uploadedPhotos, photoFolder1);
-        List<PhotoFile> nonExistingPhotos = localCache.getNonExistingPhotos(photos, photoFolder2);
+        localCache.storeUploadedFiles(uploadedPhotos, new PhotoFolderId(photoFolder1.getId()));
+        List<PhotoFile> nonExistingPhotos = localCache.getNonExistingPhotos(photos, new PhotoFolderId(photoFolder2.getId()));
 
         Assert.assertEquals(photos, nonExistingPhotos);
     }

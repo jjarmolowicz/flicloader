@@ -26,32 +26,32 @@ class LazySender {
     }
 
     public void sendIfNeeded(PhotoFolderInfo i) {
-        LOGGER.debug("About to process dir {}" ,i.getFolder().getDir());
+        LOGGER.debug("About to process dir {}", i.getFolder().getDir());
         if (i.getPhotos().isEmpty()) {
             LOGGER.debug("No photos skipping.");
             return;
         }
-        Optional<PhotoFolder> optionalFolder = localCache.getPhotoFolder(i.getFolder());
-        PhotoFolder folder;
+        Optional<PhotoFolderId> optionalFolder = localCache.getPhotoFolder(i.getFolder());
+        PhotoFolderId folderId;
         List<UploadedPhoto> uploadedPhotos;
         if (optionalFolder.isPresent()) {
-            folder = optionalFolder.get();
+            folderId = optionalFolder.get();
             uploadedPhotos =
-                userAccount.uploadPhotos(localCache.getNonExistingPhotos(i.getPhotos(), folder), i.getUploadConfig());
-            userAccount.movePhotosToFolder(uploadedPhotos, folder);
+                userAccount.uploadPhotos(localCache.getNonExistingPhotos(i.getPhotos(), folderId), i.getUploadConfig());
+            userAccount.movePhotosToFolder(uploadedPhotos, folderId);
         } else {
             String folderName = createFolderName(i.getFolder().getDir());
             LOGGER.info("Creating new photo folder: {}", folderName);
             uploadedPhotos = userAccount.uploadPhotos(i.getPhotos(), i.getUploadConfig());
             UploadedPhoto firstPhoto = uploadedPhotos.get(0);
-            String folderId = userAccount.createPhotoFolder(folderName, firstPhoto.getId());
-            folder = new PhotoFolder(folderId, i.getFolder().getDir().getAbsolutePath());
+            folderId = new PhotoFolderId(userAccount.createPhotoFolder(folderName, firstPhoto.getId()));
+            PhotoFolder folder = new PhotoFolder(folderId.getId(), i.getFolder().getRelativePath());
             if (uploadedPhotos.size() > 1) { // first picture is already a part of photoFolder
-                userAccount.movePhotosToFolder(uploadedPhotos.subList(1, uploadedPhotos.size()), folder);
+                userAccount.movePhotosToFolder(uploadedPhotos.subList(1, uploadedPhotos.size()), folderId);
             }
             localCache.storePhotoFolder(folder);
         }
-        localCache.storeUploadedFiles(uploadedPhotos, folder);
+        localCache.storeUploadedFiles(uploadedPhotos, folderId);
     }
 
     private String createFolderName(File folder) {
