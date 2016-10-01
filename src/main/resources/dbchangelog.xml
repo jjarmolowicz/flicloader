@@ -31,4 +31,20 @@
             <column name="photofolder_id"></column>
         </createIndex>
     </changeSet>
+    <changeSet id="remove unique" author="jj">
+        <createTable tableName="photofile2">
+            <column name="photofile_id" type="text">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="photofile_relative_path" type="text">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="photofolder_id" type="text">
+                <constraints nullable="false" foreignKeyName="fk_photofolder_of_photofile" referencedTableName="photofolder" referencedColumnNames="photofolder_id" deleteCascade="true" />
+            </column>
+        </createTable>
+        <sql>INSERT INTO photofile2 SELECT * FROM photofile</sql>
+        <dropTable tableName="photofile"/>
+        <renameTable oldTableName="photofile2" newTableName="photofile" />
+    </changeSet>
 </databaseChangeLog>

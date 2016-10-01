@@ -93,4 +93,28 @@ public class LocalCachePhotosTest {
 
         Assert.assertEquals(photos, nonExistingPhotos);
     }
+
+    @Test
+    public void givenTwoFilesWithSameRelativePathThenBothCanBeStoredd() throws IOException {
+        LocalCache localCache = new LocalCache(folder.getRoot());
+
+        File innerFolder = folder.newFolder();
+        PhotoFile photoFile = new PhotoFile(innerFolder, folder.newFile());
+        List<PhotoFile> photos = Collections.singletonList(photoFile);
+        PhotoFolder photoFolder1 = new PhotoFolder("1", new RelativePath(folder.getRoot(), innerFolder));
+        PhotoFolder photoFolder2 = new PhotoFolder("2", new RelativePath(folder.getRoot(), folder.newFolder()));
+        List<UploadedPhoto> uploadedPhotos =
+                Lists.newArrayList(new UploadedPhoto("1", new RelativePath(folder.getRoot(), photoFile.getFile())));
+
+        List<UploadedPhoto> uploadedPhotos2 =
+                Lists.newArrayList(new UploadedPhoto("2", new RelativePath(folder.getRoot(), photoFile.getFile())));
+
+        localCache.storePhotoFolder(photoFolder1);
+        localCache.storePhotoFolder(photoFolder2);
+        localCache.storeUploadedFiles(uploadedPhotos, new PhotoFolderId(photoFolder1.getId()));
+        localCache.storeUploadedFiles(uploadedPhotos2, new PhotoFolderId(photoFolder2.getId()));
+        List<PhotoFile> nonExistingPhotos = localCache.getNonExistingPhotos(photos, new PhotoFolderId(photoFolder2.getId()));
+
+        Assert.assertEquals(photos, nonExistingPhotos);
+    }
 }
