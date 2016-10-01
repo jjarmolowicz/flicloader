@@ -41,6 +41,7 @@ class FlickrAccountImpl implements UserAccount {
     public List<UploadedPhoto> uploadPhotos(final List<PhotoFile> photos, UploadConfig config) {
         Uploader uploader = f.getUploader();
         List<UploadedPhoto> result = Lists.newArrayListWithCapacity(photos.size());
+        LOGGER.debug("Files to upload: {}", photos);
         for (PhotoFile photo : photos) {
             UploadMetaData metaData = new UploadMetaData();
             metaData.setPublicFlag(config.getIsPublic());
@@ -58,7 +59,7 @@ class FlickrAccountImpl implements UserAccount {
                 String photoId = uploader.upload(photo.getFile(), metaData);
                 result.add(new UploadedPhoto(photoId, photo.getRelativePath()));
             } catch (FlickrException e) {
-                Throwables.propagate(e);
+                LOGGER.error("Error during flickr uplaoding", e);
             }
 
         }
