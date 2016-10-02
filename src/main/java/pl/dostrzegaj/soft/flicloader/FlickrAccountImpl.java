@@ -84,7 +84,7 @@ class FlickrAccountImpl implements UserAccount {
                     }
                 }
             } catch (FlickrException e) {
-                LOGGER.error("Error during flickr uplaoding", e);
+                LOGGER.error("Error during flickr uplaoding of :"+ photo.getFile().toString(), e);
             }
 
         }
