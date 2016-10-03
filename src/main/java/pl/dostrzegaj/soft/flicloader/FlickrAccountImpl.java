@@ -23,8 +23,9 @@ class FlickrAccountImpl implements UserAccount {
     private static final Logger LOGGER = LoggerFactory.getLogger(FlickrAccountImpl.class);
     private Flickr f;
     private Auth auth;
-    private int SEND_RETRIES = 3;
-    private long SEND_RETRy_DELAY_BASE = TimeUnit.SECONDS.toMillis(1);
+    private int SEND_RETRIES = 5;
+    private int RETRY_BASE = 2;
+    private long SEND_RETRY_DELAY = TimeUnit.MINUTES.toMillis(1);
 
     public FlickrAccountImpl(Flickr f, Auth auth) {
         this.f = f;
@@ -75,7 +76,7 @@ class FlickrAccountImpl implements UserAccount {
                     if (i < SEND_RETRIES) {
                         LOGGER.warn("communication error, retriable", ex);
                         try {
-                            Thread.sleep(i * SEND_RETRy_DELAY_BASE);
+                            Thread.sleep(Math.round(Math.pow(RETRY_BASE, i) * SEND_RETRY_DELAY));
                         } catch (InterruptedException ie) {
                             Throwables.propagate(ie);
                         }
@@ -84,7 +85,7 @@ class FlickrAccountImpl implements UserAccount {
                     }
                 }
             } catch (FlickrException e) {
-                LOGGER.error("Error during flickr uplaoding of :"+ photo.getFile().toString(), e);
+                LOGGER.error("Error during flickr uplaoding of :" + photo.getFile().toString(), e);
             }
 
         }
