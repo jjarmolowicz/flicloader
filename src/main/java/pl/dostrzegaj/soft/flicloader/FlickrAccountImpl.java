@@ -63,7 +63,7 @@ class FlickrAccountImpl implements UserAccount {
 
             try {
                 for (int i = 1; i <= SEND_RETRIES; ++i) {
-                    RuntimeException ex = null;
+                    RuntimeException ex;
                     try {
                         String photoId = uploader.upload(photo.getFile(), metaData);
                         result.add(new UploadedPhoto(photoId, photo.getRelativePath()));
