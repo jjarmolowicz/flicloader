@@ -12,7 +12,7 @@ class PhotoFoldersIterable implements Iterable<PhotoFolderInfo> {
 
     private static FileFilter filter = pathname -> {
         String s = pathname.getName().toLowerCase();
-        return (!s.startsWith(".")) &&  (pathname.isDirectory() || s.endsWith(".jpg") || s.endsWith("mov"));
+        return (!s.startsWith(".")) &&  (pathname.isDirectory() || s.endsWith(".jpg") || s.endsWith("mov")|| s.endsWith(".avi"));
     };
     private File root;
     private UploadConfig uploadConfig;
