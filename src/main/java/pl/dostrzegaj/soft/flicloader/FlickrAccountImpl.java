@@ -27,24 +27,35 @@ class FlickrAccountImpl implements UserAccount {
     private int RETRY_BASE = 2;
     private long SEND_RETRY_DELAY = TimeUnit.MINUTES.toMillis(1);
 
-    public FlickrAccountImpl(Flickr f, Auth auth) {
+    public FlickrAccountImpl(
+        Flickr f,
+        Auth auth) {
+
         this.f = f;
         this.auth = auth;
-        RequestContext.getRequestContext().setAuth(auth);
+        RequestContext.getRequestContext()
+            .setAuth(auth);
     }
 
     @Override
-    public String createPhotoFolder(String title, String primaryPhotoId) {
+    public String createPhotoFolder(
+        String title,
+        String primaryPhotoId) {
+
         PhotosetsInterface i = f.getPhotosetsInterface();
         try {
-            return i.create(title, "", primaryPhotoId).getId();
+            return i.create(title, "", primaryPhotoId)
+                .getId();
         } catch (FlickrException e) {
             throw Throwables.propagate(e);
         }
     }
 
     @Override
-    public List<UploadedPhoto> uploadPhotos(final List<PhotoFile> photos, UploadConfig config) {
+    public List<UploadedPhoto> uploadPhotos(
+        final List<PhotoFile> photos,
+        UploadConfig config) {
+
         Uploader uploader = f.getUploader();
         List<UploadedPhoto> result = Lists.newArrayListWithCapacity(photos.size());
         LOGGER.debug("Files to upload: {}", photos);
@@ -53,7 +64,8 @@ class FlickrAccountImpl implements UserAccount {
             metaData.setPublicFlag(config.getIsPublic());
             metaData.setFriendFlag(config.getIsFriend());
             metaData.setFamilyFlag(config.getIsFamily());
-            String basefilename = photo.getFile().getName(); // "image.jpg";
+            String basefilename = photo.getFile()
+                .getName(); // "image.jpg";
             String title = basefilename;
             if (basefilename.lastIndexOf('.') > 0) {
                 title = basefilename.substring(0, basefilename.lastIndexOf('.'));
@@ -62,7 +74,7 @@ class FlickrAccountImpl implements UserAccount {
             metaData.setFilename(basefilename);
 
             try {
-                for (int i = 1; i <= SEND_RETRIES; ++i) {
+                for (int i = 1 ; i <= SEND_RETRIES ; ++i) {
                     RuntimeException ex;
                     try {
                         String photoId = uploader.upload(photo.getFile(), metaData);
@@ -85,7 +97,8 @@ class FlickrAccountImpl implements UserAccount {
                     }
                 }
             } catch (FlickrException e) {
-                LOGGER.error("Error during flickr uplaoding of :" + photo.getFile().toString(), e);
+                LOGGER.error("Error during flickr uplaoding of :" + photo.getFile()
+                    .toString(), e);
             }
 
         }
@@ -97,13 +110,40 @@ class FlickrAccountImpl implements UserAccount {
     }
 
     @Override
-    public void movePhotosToFolder(final List<UploadedPhoto> uploadedPhotos, final PhotoFolderId folder) {
+    public void movePhotosToFolder(
+        final List<UploadedPhoto> uploadedPhotos,
+        final PhotoFolderId folder) {
+
         for (UploadedPhoto uploadedPhoto : uploadedPhotos) {
+            moveWithRetries(folder, uploadedPhoto);
+        }
+    }
+
+    private void moveWithRetries(
+        PhotoFolderId folder,
+        UploadedPhoto uploadedPhoto) {
+
+        for (int i = 1; i <= IO_RETRIES(); ++i) {
             try {
-                f.getPhotosetsInterface().addPhoto(folder.getId(), uploadedPhoto.getId());
+                f.getPhotosetsInterface()
+                    .addPhoto(folder.getId(), uploadedPhoto.getId());
+                return;
+            } catch (FlickrRuntimeException fre) {
+                LOGGER.warn("During movePhotosToFolder got exception. Will sleep and retry", fre);
+                try {
+                    TimeUnit.SECONDS.sleep(i);
+                } catch (InterruptedException e) {
+                    Thread.currentThread()
+                        .interrupt();
+                    throw new RuntimeException(e);
+                }
             } catch (FlickrException e) {
                 Throwables.propagate(e);
             }
         }
+    }
+
+    private int IO_RETRIES() {
+        return 10;
     }
 }
