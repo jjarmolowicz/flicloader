@@ -25,7 +25,7 @@ class FlickrAccountImpl implements UserAccount {
     private Auth auth;
     private int SEND_RETRIES = 5;
     private int RETRY_BASE = 2;
-    private long SEND_RETRY_DELAY = TimeUnit.MINUTES.toMillis(1);
+    private long SEND_RETRY_DELAY = TimeUnit.SECONDS.toMillis(1);
 
     public FlickrAccountImpl(
         Flickr f,
@@ -75,36 +75,48 @@ class FlickrAccountImpl implements UserAccount {
 
             try {
                 for (int i = 1 ; i <= SEND_RETRIES ; ++i) {
-                    RuntimeException ex;
                     try {
                         String photoId = uploader.upload(photo.getFile(), metaData);
                         result.add(new UploadedPhoto(photoId, photo.getRelativePath()));
                         break;
-                    } catch (OAuthConnectionException oce) {
-                        ex = oce;
-                    } catch (FlickrRuntimeException fre) {
-                        ex = fre;
-                    }
-                    if (i < SEND_RETRIES) {
-                        LOGGER.warn("communication error, retriable", ex);
-                        try {
-                            Thread.sleep(Math.round(Math.pow(RETRY_BASE, i) * SEND_RETRY_DELAY));
-                        } catch (InterruptedException ie) {
-                            Throwables.propagate(ie);
-                        }
-                    } else {
-                        throw ex;
+                    } catch (OAuthConnectionException | FlickrRuntimeException oce) {
+                        handleRetriableException(i, oce);
+                        LOGGER.debug("During uploadPhotos", oce);
                     }
                 }
             } catch (FlickrException e) {
                 LOGGER.error("Error during flickr uplaoding of :" + photo.getFile()
                     .toString(), e);
             }
+            LOGGER.debug("File {} ({}) uploaded.", title, basefilename);
 
         }
         LOGGER.debug("New files uploaded: {}", photos);
         if (!photos.isEmpty()) {
             LOGGER.info("Uploaded {} new photos", photos.size());
+        }
+        return result;
+    }
+
+    void sleepSome(
+        int i) {
+
+        try {
+            Thread.sleep(Math.round(pow(RETRY_BASE, i) * SEND_RETRY_DELAY));
+        } catch (InterruptedException ie) {
+            Thread.currentThread()
+                .interrupt();
+            Throwables.propagate(ie);
+        }
+    }
+
+    long pow(
+        int a,
+        int b) {
+
+        long result = 1;
+        for (int i = 1 ; i <= b ; i++) {
+            result *= a;
         }
         return result;
     }
@@ -123,27 +135,33 @@ class FlickrAccountImpl implements UserAccount {
         PhotoFolderId folder,
         UploadedPhoto uploadedPhoto) {
 
-        for (int i = 1; i <= IO_RETRIES(); ++i) {
+        for (int i = 1 ; i <= SEND_RETRIES ; ++i) {
             try {
                 f.getPhotosetsInterface()
                     .addPhoto(folder.getId(), uploadedPhoto.getId());
                 return;
             } catch (FlickrRuntimeException fre) {
-                LOGGER.warn("During movePhotosToFolder got exception. Will sleep and retry", fre);
-                try {
-                    TimeUnit.SECONDS.sleep(i);
-                } catch (InterruptedException e) {
-                    Thread.currentThread()
-                        .interrupt();
-                    throw new RuntimeException(e);
-                }
+                handleRetriableException(i, fre);
             } catch (FlickrException e) {
-                Throwables.propagate(e);
+                if ("0".equals(e.getErrorCode())) {
+                    handleRetriableException(i, e);
+                }else {
+                    Throwables.propagate(e);
+                }
             }
         }
+
     }
 
-    private int IO_RETRIES() {
-        return 10;
+    private void handleRetriableException(
+        int i,
+        Exception fre) {
+
+        LOGGER.warn("During movePhotosToFolder got exception. Will sleep and retry", fre);
+        if (i == SEND_RETRIES) {
+            Throwables.propagate(fre);
+        }
+        sleepSome(i);
     }
+
 }

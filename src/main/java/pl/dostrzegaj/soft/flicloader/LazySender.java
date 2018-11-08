@@ -46,10 +46,10 @@ class LazySender {
             UploadedPhoto firstPhoto = uploadedPhotos.get(0);
             folderId = new PhotoFolderId(userAccount.createPhotoFolder(folderName, firstPhoto.getId()));
             PhotoFolder folder = new PhotoFolder(folderId.getId(), i.getFolder().getRelativePath());
+            localCache.storePhotoFolder(folder);
             if (uploadedPhotos.size() > 1) { // first picture is already a part of photoFolder
                 userAccount.movePhotosToFolder(uploadedPhotos.subList(1, uploadedPhotos.size()), folderId);
             }
-            localCache.storePhotoFolder(folder);
         }
         localCache.storeUploadedFiles(uploadedPhotos, folderId);
     }
