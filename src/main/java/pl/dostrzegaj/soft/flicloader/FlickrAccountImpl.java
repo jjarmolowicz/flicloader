@@ -140,7 +140,7 @@ class FlickrAccountImpl implements UserAccount {
                 f.getPhotosetsInterface()
                     .addPhoto(folder.getId(), uploadedPhoto.getId());
                 return;
-            } catch (FlickrRuntimeException fre) {
+            } catch (FlickrRuntimeException | IllegalArgumentException fre) {
                 handleRetriableException(i, fre);
             } catch (FlickrException e) {
                 if ("0".equals(e.getErrorCode())) {
