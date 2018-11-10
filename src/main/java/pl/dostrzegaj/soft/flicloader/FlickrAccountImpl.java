@@ -1,6 +1,7 @@
 package pl.dostrzegaj.soft.flicloader;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.scribe.exceptions.OAuthConnectionException;
@@ -52,50 +53,43 @@ class FlickrAccountImpl implements UserAccount {
     }
 
     @Override
-    public List<UploadedPhoto> uploadPhotos(
-        final List<PhotoFile> photos,
+    public Optional<UploadedPhoto> uploadPhoto(
+        PhotoFile photo,
         UploadConfig config) {
 
         Uploader uploader = f.getUploader();
-        List<UploadedPhoto> result = Lists.newArrayListWithCapacity(photos.size());
-        LOGGER.debug("Files to upload: {}", photos);
-        for (PhotoFile photo : photos) {
-            UploadMetaData metaData = new UploadMetaData();
-            metaData.setPublicFlag(config.getIsPublic());
-            metaData.setFriendFlag(config.getIsFriend());
-            metaData.setFamilyFlag(config.getIsFamily());
-            String basefilename = photo.getFile()
-                .getName(); // "image.jpg";
-            String title = basefilename;
-            if (basefilename.lastIndexOf('.') > 0) {
-                title = basefilename.substring(0, basefilename.lastIndexOf('.'));
-            }
-            metaData.setTitle(title);
-            metaData.setFilename(basefilename);
-
-            try {
-                for (int i = 1 ; i <= SEND_RETRIES ; ++i) {
-                    try {
-                        String photoId = uploader.upload(photo.getFile(), metaData);
-                        result.add(new UploadedPhoto(photoId, photo.getRelativePath()));
-                        break;
-                    } catch (OAuthConnectionException | FlickrRuntimeException oce) {
-                        handleRetriableException(i, oce);
-                        LOGGER.debug("During uploadPhotos", oce);
-                    }
+        UploadMetaData metaData = new UploadMetaData();
+        metaData.setPublicFlag(config.getIsPublic());
+        metaData.setFriendFlag(config.getIsFriend());
+        metaData.setFamilyFlag(config.getIsFamily());
+        String basefilename = photo.getFile()
+            .getName(); // "image.jpg";
+        String title = basefilename;
+        if (basefilename.lastIndexOf('.') > 0) {
+            title = basefilename.substring(0, basefilename.lastIndexOf('.'));
+        }
+        metaData.setTitle(title);
+        metaData.setFilename(basefilename);
+        Optional<UploadedPhoto> uploadedPhoto = Optional.empty();
+        try {
+            for (int i = 1 ; i <= SEND_RETRIES ; ++i) {
+                try {
+                    String photoId = uploader.upload(photo.getFile(), metaData);
+                    uploadedPhoto = Optional.of(new UploadedPhoto(photoId, photo.getRelativePath()));
+                    break;
+                } catch (OAuthConnectionException | FlickrRuntimeException oce) {
+                    handleRetriableException(i, oce);
+                    LOGGER.debug("During uploadPhotos", oce);
                 }
-            } catch (FlickrException e) {
-                LOGGER.error("Error during flickr uplaoding of :" + photo.getFile()
-                    .toString(), e);
             }
-            LOGGER.debug("File {} ({}) uploaded.", title, basefilename);
-
+        } catch (FlickrException e) {
+            LOGGER.debug("Error during flickr uplaoding of :" + photo.getFile()
+                .toString(), e);
+            LOGGER.error("Error during flickr uplaoding of :" + photo.getFile()
+                .toString());
         }
-        LOGGER.debug("New files uploaded: {}", photos);
-        if (!photos.isEmpty()) {
-            LOGGER.info("Uploaded {} new photos", photos.size());
-        }
-        return result;
+        LOGGER.debug("File {} ({}) uploaded.", title, basefilename);
+        return uploadedPhoto;
     }
 
     void sleepSome(
@@ -122,13 +116,11 @@ class FlickrAccountImpl implements UserAccount {
     }
 
     @Override
-    public void movePhotosToFolder(
-        final List<UploadedPhoto> uploadedPhotos,
+    public void movePhotoToFolder(
+        final UploadedPhoto uploadedPhoto,
         final PhotoFolderId folder) {
 
-        for (UploadedPhoto uploadedPhoto : uploadedPhotos) {
-            moveWithRetries(folder, uploadedPhoto);
-        }
+        moveWithRetries(folder, uploadedPhoto);
     }
 
     private void moveWithRetries(
@@ -145,7 +137,7 @@ class FlickrAccountImpl implements UserAccount {
             } catch (FlickrException e) {
                 if ("0".equals(e.getErrorCode())) {
                     handleRetriableException(i, e);
-                }else {
+                } else {
                     Throwables.propagate(e);
                 }
             }
@@ -157,7 +149,8 @@ class FlickrAccountImpl implements UserAccount {
         int i,
         Exception fre) {
 
-        LOGGER.warn("During movePhotosToFolder got exception. Will sleep and retry", fre);
+        LOGGER.debug("During movePhotosToFolder got exception. Will sleep and retry", fre);
+        LOGGER.warn("Got exception while processing folder calling flickr. Will wait and retry. Details can be found in detailed upload log");
         if (i == SEND_RETRIES) {
             Throwables.propagate(fre);
         }

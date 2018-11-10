@@ -3,6 +3,7 @@ package pl.dostrzegaj.soft.flicloader;
 import java.io.*;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +14,8 @@ public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     public static final String PROJECT_NAME = "flicloader";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         Properties properties = verifyInputAndProduceProperties(args);
-        List<File> dirsToBeSynced = new DirsToBeSyncedProvider(properties).extractAndVerifyCorrectness();
         AuthEnforcer authEnforcer = new AuthEnforcer(properties, new AuthEnforcer.AuthWrapperFactory() {
 
             @Override
@@ -28,14 +28,27 @@ public class Main {
         UploadConfig uploadConfig = new UploadConfig(properties);
         LOGGER.debug("upload config: {}", uploadConfig);
 
+        LOGGER.info("Checking sync state of Your folders");
+        List<File> dirsToBeSynced = new DirsToBeSyncedProvider(properties).extractAndVerifyCorrectness();
         for (File dir : dirsToBeSynced) {
             try (LocalCache localCache = new LocalCache(dir)) {
                 LazySender sender = new LazySender(dir, localCache, userAccount);
                 for (PhotoFolderInfo i : new PhotoFoldersIterable(dir, uploadConfig)) {
-                    sender.sendIfNeeded(i);
+                    int tries = 1;
+                    try {
+                        sender.sendIfNeeded(i);
+                    }catch (RuntimeException e) {
+                        if (tries++ > 3) {
+                            throw e;
+                        }
+                        LOGGER.debug("sender.sendIfNeeded threw",e);
+                        LOGGER.warn("Got exception while processing folder {}. Will wait and retry. Details can be found in detailed upload log", i.getFolder().getDir());
+                        TimeUnit.MINUTES.sleep(1);
+                    }
                 }
             }
         }
+        LOGGER.info("Processing complete. Process will now finish");
 
     }
 

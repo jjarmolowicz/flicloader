@@ -116,18 +116,16 @@ class LocalCache  implements Closeable{
         return result;
     }
 
-    public void storeUploadedFiles(List<UploadedPhoto> photos, PhotoFolderId folder) {
+    public void storeUploadedFile(
+        UploadedPhoto photo,
+        PhotoFolderId folder) {
         try {
-            if (photos.isEmpty()) {
-                return;
-            }
-            for (UploadedPhoto photo : photos) {
-                insertPhotosStatement.setString(1, photo.getId());
-                insertPhotosStatement.setString(2, photo.getRelativePath());
-                insertPhotosStatement.setString(3, folder.getId());
-                insertPhotosStatement.addBatch();
-            }
-            insertPhotosStatement.executeBatch();
+            insertPhotosStatement.clearParameters();
+            insertPhotosStatement.clearBatch();
+            insertPhotosStatement.setString(1, photo.getId());
+            insertPhotosStatement.setString(2, photo.getRelativePath());
+            insertPhotosStatement.setString(3, folder.getId());
+            insertPhotosStatement.executeUpdate();
             c.commit();
         } catch (final SQLException e) {
             Throwables.propagate(e);

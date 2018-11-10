@@ -1,11 +1,13 @@
 package pl.dostrzegaj.soft.flicloader;
 
-import java.util.List;
+import java.util.Optional;
 
 interface UserAccount {
     String createPhotoFolder(String title, String primaryPhotoId);
 
-    List<UploadedPhoto> uploadPhotos(List<PhotoFile> photos, UploadConfig config);
+    Optional<UploadedPhoto> uploadPhoto(PhotoFile photo, UploadConfig config);
 
-    void movePhotosToFolder(List<UploadedPhoto> uploadedPhotos, PhotoFolderId folder);
+    void movePhotoToFolder(
+            UploadedPhoto uploadedPhoto,
+            PhotoFolderId folder);
 }

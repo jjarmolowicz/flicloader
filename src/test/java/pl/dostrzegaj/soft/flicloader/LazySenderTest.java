@@ -2,19 +2,18 @@ package pl.dostrzegaj.soft.flicloader;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import com.google.common.collect.Lists;
+import org.mockito.internal.verification.Times;
 
 public class LazySenderTest {
 
@@ -34,8 +33,8 @@ public class LazySenderTest {
             new PhotoFolderInfo(folder, Collections.singletonList(new PhotoFile(this.folder.getRoot(), photoFile)),
                 new UploadConfig(new Properties()));
         Mockito.when(localCache.getPhotoFolder(folder)).thenReturn(Optional.empty());
-        Mockito.when(userAccount.uploadPhotos(Mockito.anyList(), Mockito.any())).thenReturn(
-            Lists.newArrayList(new UploadedPhoto(photoId, new RelativePath(this.folder.getRoot(), photoFile))));
+        Mockito.when(userAccount.uploadPhoto(Mockito.any(), Mockito.any())).thenReturn(
+            Optional.of(new UploadedPhoto(photoId, new RelativePath(this.folder.getRoot(), photoFile))));
 
         // when
         sender.sendIfNeeded(photoInfo);
@@ -57,8 +56,8 @@ public class LazySenderTest {
             new PhotoFolderInfo(folder, Collections.singletonList(new PhotoFile(this.folder.getRoot(), photoFile)),
                 new UploadConfig(new Properties()));
         Mockito.when(localCache.getPhotoFolder(folder)).thenReturn(Optional.empty());
-        Mockito.when(userAccount.uploadPhotos(Mockito.anyList(), Mockito.any())).thenReturn(
-            Lists.newArrayList(new UploadedPhoto(photoId, new RelativePath(this.folder.getRoot(), photoFile))));
+        Mockito.when(userAccount.uploadPhoto(Mockito.any(), Mockito.any())).thenReturn(
+           Optional.of(new UploadedPhoto(photoId, new RelativePath(this.folder.getRoot(), photoFile))));
 
         // when
         sender.sendIfNeeded(photoInfo);
@@ -85,15 +84,16 @@ public class LazySenderTest {
             photos.stream()
                 .map(i -> new UploadedPhoto(i.getFile().getName(), new RelativePath(this.folder.getRoot(), i.getFile())))
                 .collect(Collectors.toList());
-        Mockito.when(userAccount.uploadPhotos(Mockito.eq(photos), Mockito.any())).thenReturn(Lists.newArrayList(uploaded));
+        Iterator<UploadedPhoto> iterator = uploaded.iterator();
+        Mockito.when(userAccount.uploadPhoto(Mockito.any(), Mockito.any())).thenReturn(Optional.of(iterator.next()));
 
         // when
         sender.sendIfNeeded(photoInfo);
 
         // then
-        Mockito.verify(userAccount).uploadPhotos(Mockito.eq(photos), Mockito.any());
-        Mockito.verify(userAccount).movePhotosToFolder(Mockito.any(), Mockito.eq(photoFolder));
-        Mockito.verify(localCache).storeUploadedFiles(Mockito.eq(uploaded), Mockito.eq(photoFolder));
+        Mockito.verify(userAccount, new Times(photos.size())).uploadPhoto(Mockito.any(), Mockito.any());
+        Mockito.verify(userAccount, new Times(photos.size())).movePhotoToFolder(Mockito.any(), Mockito.eq(photoFolder));
+        Mockito.verify(localCache, new Times(photos.size())).storeUploadedFile(Mockito.any(), Mockito.eq(photoFolder));
     }
 
     @Test
@@ -111,15 +111,17 @@ public class LazySenderTest {
         Mockito.when(localCache.getPhotoFolder(folder)).thenReturn(Optional.empty());
         List<UploadedPhoto> uploaded =
             Lists.newArrayList(new UploadedPhoto("id", new RelativePath(this.folder.getRoot(), photoFile.getFile())));
-        Mockito.when(userAccount.uploadPhotos(Mockito.eq(photos), Mockito.any())).thenReturn(Lists.newArrayList(uploaded));
+        Iterator<UploadedPhoto> photoIterator = uploaded.iterator();
+        Mockito.when(userAccount.uploadPhoto(Mockito.any(), Mockito.any())).thenReturn(Optional.of(photoIterator.next()));
 
         // when
         sender.sendIfNeeded(photoInfo);
 
         // then
+        CustomTypeSafeMatcher<UploadedPhoto> customTypeSafeMatcher = getCustomTypeSafeMatcher(uploaded);
         Mockito.verify(userAccount).createPhotoFolder(Mockito.anyString(), Mockito.anyString());
-        Mockito.verify(userAccount).uploadPhotos(Mockito.eq(photos), Mockito.any());
-        Mockito.verify(localCache).storeUploadedFiles(Mockito.eq(uploaded), Mockito.any());
+        Mockito.verify(userAccount, new Times(photos.size())).uploadPhoto(Mockito.any(), Mockito.any());
+        Mockito.verify(localCache).storeUploadedFile(Mockito.argThat(customTypeSafeMatcher), Mockito.any());
     }
 
     @Test
@@ -140,31 +142,37 @@ public class LazySenderTest {
             photos.stream()
                 .map(i -> new UploadedPhoto(i.getFile().getName(), new RelativePath(this.folder.getRoot(), i.getFile())))
                 .collect(Collectors.toList());
-        Mockito.when(userAccount.uploadPhotos(Mockito.eq(photos), Mockito.any())).thenReturn(Lists.newArrayList(uploaded));
+        Iterator<UploadedPhoto> photoIterator = uploaded.iterator();
+        Mockito.when(userAccount.uploadPhoto(Mockito.any(), Mockito.any())).thenAnswer(a -> Optional.of(photoIterator.next()));
 
         // when
         sender.sendIfNeeded(photoInfo);
 
         // then
         Mockito.verify(userAccount).createPhotoFolder(Mockito.anyString(), Mockito.anyString());
-        Mockito.verify(userAccount).uploadPhotos(Mockito.eq(photos), Mockito.any());
-        CustomTypeSafeMatcher<List<UploadedPhoto>> customTypeSafeMatcher =
-            new CustomTypeSafeMatcher<List<UploadedPhoto>>("Second uploaded file") {
+        Times asMuchAsPhotos = new Times(photos.size());
+        Mockito.verify(userAccount, asMuchAsPhotos).uploadPhoto(Mockito.any(), Mockito.any());
+        CustomTypeSafeMatcher<UploadedPhoto> customTypeSafeMatcher = getCustomTypeSafeMatcher(uploaded);
+        Mockito.verify(userAccount,new Times(photos.size()-1)).movePhotoToFolder(Mockito.argThat(customTypeSafeMatcher), Mockito.any());
+        Mockito.verify(localCache, asMuchAsPhotos).storeUploadedFile(Mockito.argThat(customTypeSafeMatcher), Mockito.any());
+    }
 
-                @Override
-                protected boolean matchesSafely(final List<UploadedPhoto> item) {
-                    return item.size() == 1 && item.get(0).equals(uploaded.get(1));
-                }
-            };
-        Mockito.verify(userAccount).movePhotosToFolder(Mockito.argThat(customTypeSafeMatcher), Mockito.any());
-        Mockito.verify(localCache).storeUploadedFiles(Mockito.eq(uploaded), Mockito.any());
+    CustomTypeSafeMatcher<UploadedPhoto> getCustomTypeSafeMatcher(List<UploadedPhoto> uploaded) {
+        return new CustomTypeSafeMatcher<UploadedPhoto>("Second uploaded file") {
+
+            @Override
+            protected boolean matchesSafely(final UploadedPhoto item) {
+                return uploaded.contains(item);
+            }
+        };
     }
 
     @Test
     public void givenNewFileInExistingPhotoFolderThenPhotoStoredInLocalCache() throws IOException {
         // given
         PhotoFolderId photoFolder = new PhotoFolderId("");
-        List<PhotoFile> photos = Collections.singletonList(new PhotoFile(folder.getRoot(), folder.newFile()));
+        PhotoFile o = new PhotoFile(folder.getRoot(), folder.newFile());
+        List<PhotoFile> photos = Collections.singletonList(o);
 
         LocalCache localCache = Mockito.mock(LocalCache.class);
         UserAccount userAccount = Mockito.mock(UserAccount.class);
@@ -173,12 +181,14 @@ public class LazySenderTest {
         PhotoFolderInfo photoInfo = new PhotoFolderInfo(folder, photos, new UploadConfig(new Properties()));
 
         Mockito.when(localCache.getPhotoFolder(folder)).thenReturn(Optional.of(photoFolder));
+        Mockito.when(localCache.getNonExistingPhotos(Mockito.eq(photos), Mockito.any())).thenReturn(photos);
+        Mockito.when(userAccount.uploadPhoto(Mockito.any(), Mockito.any())).thenReturn(Optional.of(new UploadedPhoto("", o.getRelativePath())));
 
         // when
         sender.sendIfNeeded(photoInfo);
 
         // then
-        Mockito.verify(localCache).storeUploadedFiles(Mockito.anyList(), Mockito.eq(photoFolder));
+        Mockito.verify(localCache, new Times(photos.size())).storeUploadedFile(Mockito.any(), Mockito.eq(photoFolder));
     }
 
     @Test
@@ -200,7 +210,6 @@ public class LazySenderTest {
         sender.sendIfNeeded(photoInfo);
 
         // then
-        Mockito.verify(userAccount).uploadPhotos(Mockito.eq(emptyList), Mockito.any());
-        Mockito.verify(userAccount).movePhotosToFolder(Mockito.any(), Mockito.eq(photoFolder));
+        Mockito.verifyNoMoreInteractions(userAccount);
     }
 }
